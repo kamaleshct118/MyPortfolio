@@ -1,0 +1,85 @@
+# ============================================================
+# ROOT .gitignore — Myportfolio
+# ============================================================
+
+# ─── Environment & Secrets ───────────────────────────────────
+.env
+.env.*
+!.env.example
+start.bat
+scratch_test.py
+scratch_test_fast.py
+test_rag_system.py
+test_rag_fast.py
+test_rag_full.py
+test_rag_vector.py
+architecture_learnings.md
+# ─── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Python virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# ─── Backend — Generated & Sensitive Data ────────────────────
+# Uploaded files (PDFs, docs, etc.)
+backend/uploads/
+uploads/
+
+# Vector embeddings (large, generated at runtime)
+backend/vectorstore/
+vectorstore/
+
+# SQLite database
+backend/metadata.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Static generated assets
+backend/static/images/
+
+# ─── Node.js / Frontend ──────────────────────────────────────
+node_modules/
+frontend/node_modules/
+
+# Build output
+dist/
+dist-ssr/
+frontend/dist/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─── Editor & OS ─────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ─── Misc ────────────────────────────────────────────────────
+*.bak
+*.tmp
+*.temp
