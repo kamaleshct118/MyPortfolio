@@ -441,7 +441,7 @@ export default function App() {
                     color: "rgba(255, 255, 255, 0.75)", 
                     transition: "color 0.2s" 
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = "hsl(263, 90%, 65%)"}
+                  onMouseEnter={(e) => e.currentTarget.style.color = "var(--violet-bright)"}
                   onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255, 255, 255, 0.75)"}
                 >
                   <svg className="w-4.5 h-4.5 transition-colors" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -459,7 +459,7 @@ export default function App() {
                     color: "rgba(255, 255, 255, 0.75)", 
                     transition: "color 0.2s" 
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = "hsl(180, 85%, 50%)"}
+                  onMouseEnter={(e) => e.currentTarget.style.color = "var(--secondary-soft)"}
                   onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255, 255, 255, 0.75)"}
                 >
                   <Globe className="w-4.5 h-4.5" style={{ stroke: "currentColor" }} />
@@ -489,6 +489,21 @@ export default function App() {
     <div className="min-h-screen relative flex flex-col justify-between font-sans">
       <div className="ambient-glow-1" />
       <div className="ambient-glow-2" />
+      <div 
+        className="ambient-glow-3"
+        style={{
+          position: "absolute",
+          top: "20%",
+          right: "15%",
+          width: "300px",
+          height: "300px",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(124,58,237,0.05), transparent 50%)",
+          zIndex: -1,
+          filter: "blur(70px)",
+          pointerEvents: "none"
+        }}
+      />
 
       {/* RAG Processing Popup overlay */}
       <ProcessingPopup 
@@ -501,7 +516,12 @@ export default function App() {
       />
 
       {/* --- PREMIUM NAVIGATION HEADER --- */}
-      <header className="w-full py-5 sticky top-0 z-40 backdrop-blur-md border-b border-white/5 bg-black/20">
+      <header 
+        className="w-full py-3 sticky top-0 z-40 backdrop-blur-sm border-b border-white/5"
+        style={{
+          background: "rgba(4,8,22,0.95)"
+        }}
+      >
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentPage("home")}>
             <div
@@ -510,12 +530,13 @@ export default function App() {
                   height: "36px",
                   borderRadius: "50%",
                   overflow: "hidden",
-                  border: "1px solid rgba(168,85,247,0.3)",
+                  border: "1px solid rgba(124,58,237,0.15)",
                   flexShrink: 0,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
                 }}
               >
                 <img
-                  src="http://localhost:8000/static/images/vk_bot_icon.png"
+                  src="http://localhost:8000/static/images/kamal_icon.png"
                   alt="Kamalesh V"
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
@@ -559,10 +580,22 @@ export default function App() {
 
       {/* --- VISITOR PAGE (HOME) --- */}
       {currentPage === "home" && (
-        <main className="flex-1 container py-14 space-y-24">
+        <main className="flex-1 container space-y-32" style={{ paddingTop: "120px", paddingBottom: "120px" }}>
           
           {/* HERO SECTION */}
-          <section className="text-center max-w-3xl mx-auto space-y-6 py-8 relative">
+          <section 
+            className="text-center max-w-3xl mx-auto space-y-6 py-8 relative"
+            style={{
+              background: `
+                radial-gradient(circle at top left, rgba(37,99,235,0.08), transparent 50%),
+                radial-gradient(circle at top center, rgba(167,139,250,0.05), transparent 60%),
+                radial-gradient(circle at right, rgba(124,58,237,0.05), transparent 50%),
+                #040816
+              `,
+              borderRadius: "var(--radius-lg)",
+              padding: "60px 40px"
+            }}
+          >
             <h2 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight">
               AI-Powered <br />
               <span className="text-gradient">Portfolio Workspace</span>
@@ -591,7 +624,10 @@ export default function App() {
           </section>
 
           {/* RESUME DISPLAY OVERVIEW (Pipeline 1 Output) */}
-          <section className="space-y-6">
+          <section 
+            className="space-y-6"
+            style={{ borderTop: "1px solid rgba(255, 255, 255, 0.04)", paddingTop: "96px" }}
+          >
             <div className="flex items-center gap-3.5">
               <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/15">
                 <Briefcase className="w-5 h-5" />
@@ -695,7 +731,11 @@ export default function App() {
           </section>
 
           {/* PROJECTS GRID LIST SECTION (Pipeline 1 Output) */}
-          <section id="projects" className="space-y-8 scroll-mt-24">
+          <section 
+            id="projects" 
+            className="space-y-8 scroll-mt-24"
+            style={{ borderTop: "1px solid rgba(255, 255, 255, 0.04)", paddingTop: "96px" }}
+          >
             <div className="flex items-center gap-3.5">
               <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/15">
                 <FolderGit className="w-5 h-5" />
@@ -727,7 +767,7 @@ export default function App() {
 
       {/* --- DEVELOPER MANAGEMENT DASHBOARD (ADMIN) --- */}
       {currentPage === "admin" && adminToken && (
-        <main className="flex-1 container py-14 space-y-12">
+        <main className="flex-1 container space-y-16" style={{ paddingTop: "120px", paddingBottom: "120px" }}>
           
           <div className="flex justify-between items-center">
             <div>
@@ -870,7 +910,10 @@ export default function App() {
       )}
 
       {/* --- FOOTER & HIDDEN DEVELOPER ENTRANCE --- */}
-      <footer className="w-full py-8 border-t border-white/5 bg-black/10">
+      <footer 
+        className="w-full py-8 border-t border-white/5"
+        style={{ background: "rgba(4,8,22,0.6)" }}
+      >
         <div className="container flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-xs text-text-muted">
             &copy; {new Date().getFullYear()} AI Portfolio Assistant. Powered by local FAISS RAG.
@@ -896,10 +939,13 @@ export default function App() {
 
       {/* --- MODAL: ADMIN ACCESS KEY PROMPT --- */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
           <div 
             className="w-[360px] p-6 glass-panel space-y-4 text-left relative"
-            style={{ background: "rgba(18,14,34,0.95)" }}
+            style={{ 
+              background: "rgba(11,16,35,0.98)",
+              backdropFilter: "blur(12px)"
+            }}
           >
             <div className="flex justify-between items-center">
               <h3 className="text-md font-bold text-white">Developer Keys Access</h3>
@@ -932,10 +978,13 @@ export default function App() {
 
       {/* --- MODAL: CREATE / EDIT PROJECT FORM --- */}
       {showProjectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md overflow-y-auto py-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto py-8">
           <div 
             className="w-[500px] p-8 glass-panel space-y-6 text-left relative my-auto"
-            style={{ background: "rgba(18,14,34,0.95)" }}
+            style={{ 
+              background: "rgba(11,16,35,0.98)",
+              backdropFilter: "blur(12px)"
+            }}
           >
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold text-white">

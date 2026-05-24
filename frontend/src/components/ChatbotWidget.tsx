@@ -260,8 +260,9 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
           alignItems: "center",
           justifyContent: "center",
           border: "1px solid rgba(255, 255, 255, 0.15)",
-          background: "rgba(15, 12, 28, 0.85)",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.6)",
+          background: "rgba(11, 16, 35, 0.98)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
           cursor: "pointer",
           padding: 0,
           overflow: "hidden",
@@ -276,7 +277,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
         ) : (
           <>
             <img
-              src="http://localhost:8000/static/images/vk_monogram.jpg"
+              src="http://localhost:8000/static/images/kamal_icon.png"
               alt="Ask Kamal"
               style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
             />
@@ -296,11 +297,11 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
             fontWeight: "bold",
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            background: "rgba(10, 8, 20, 0.85)",
+            background: "rgba(4, 8, 22, 0.95)",
             padding: "4px 10px",
             borderRadius: "9999px",
-            border: "1px solid rgba(168, 85, 247, 0.25)",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+            border: "1px solid rgba(124, 58, 237, 0.15)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
             textAlign: "center",
             display: "inline-block",
             whiteSpace: "nowrap",
@@ -322,10 +323,11 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
             transform: "translateY(-50%)",
             width: panelWidth,
             height: "560px",
-            boxShadow: "0 10px 50px rgba(0,0,0,0.6)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             border: "1px solid var(--border-glass)",
             borderRadius: "var(--radius-lg)",
-            background: "rgba(15, 12, 28, 0.97)",
+            background: "rgba(11, 16, 35, 0.98)",
+            backdropFilter: "blur(12px)",
             transition: "width 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
             zIndex: 99,
           }}
@@ -348,7 +350,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                 }}
               >
                 <img
-                  src="http://localhost:8000/static/images/vk_bot_icon.png"
+                  src="http://localhost:8000/static/images/kamal_icon.png"
                   alt="AI Assistant"
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
@@ -428,8 +430,8 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                       borderRadius: "50%",
                       overflow: "hidden",
                       flexShrink: 0,
-                      border: msg.sender === "user" ? "1px solid rgba(6,182,212,0.25)" : "1px solid rgba(168,85,247,0.2)",
-                      background: msg.sender === "user" ? "rgba(6,182,212,0.1)" : "transparent",
+                      border: msg.sender === "user" ? "1px solid rgba(6,182,212,0.14)" : "1px solid rgba(124,58,237,0.2)",
+                      background: msg.sender === "user" ? "rgba(37,99,235,0.18)" : "transparent",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -440,7 +442,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                       <User style={{ width: "13px", height: "13px", color: "#22d3ee" }} />
                     ) : (
                       <img
-                        src="http://localhost:8000/static/images/vk_bot_icon.png"
+                        src="http://localhost:8000/static/images/kamal_icon.png"
                         alt="Bot"
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       />
@@ -459,13 +461,13 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                         overflowWrap: "anywhere",
                         ...(msg.sender === "user"
                           ? {
-                              background: "rgba(6,182,212,0.12)",
-                              color: "#cffafe",
-                              border: "1px solid rgba(6,182,212,0.2)",
+                              background: "rgba(37,99,235,0.18)",
+                              color: "#D8E4FF",
+                              border: "1px solid rgba(37,99,235,0.25)",
                             }
                           : {
-                              background: "rgba(255,255,255,0.04)",
-                              color: "#ede9fe",
+                              background: "rgba(124,58,237,0.14)",
+                              color: "#F8FAFC",
                               border: "1px solid rgba(255,255,255,0.06)",
                             }),
                       }}
@@ -540,7 +542,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                     }}
                   >
                     <img
-                      src="http://localhost:8000/static/images/vk_bot_icon.png"
+                      src="http://localhost:8000/static/images/kamal_icon.png"
                       alt="Bot"
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
@@ -573,7 +575,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
             style={{
               padding: "12px 14px",
               borderTop: "1px solid var(--border-glass)",
-              background: "rgba(0,0,0,0.18)",
+              background: "rgba(11, 16, 35, 0.6)",
               display: "flex",
               alignItems: "center",
               gap: "8px",
@@ -608,8 +610,8 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                 justifyContent: "center",
                 background:
                   inputValue.trim() && !isTyping
-                    ? "linear-gradient(135deg, var(--primary) 0%, hsl(263, 90%, 55%) 100%)"
-                    : "rgba(255,255,255,0.06)",
+                    ? "linear-gradient(135deg, #7C3AED, #2563EB)"
+                    : "rgba(255,255,255,0.03)",
                 color: inputValue.trim() && !isTyping ? "#fff" : "rgba(255,255,255,0.25)",
                 cursor: inputValue.trim() && !isTyping ? "pointer" : "not-allowed",
                 transition: "all 0.2s",

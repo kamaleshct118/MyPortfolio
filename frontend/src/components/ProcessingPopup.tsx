@@ -65,7 +65,7 @@ export default function ProcessingPopup({ state, isOpen, onClose }: ProcessingPo
         style={{
           background: "rgba(18, 14, 34, 0.94)",
           border: "1px solid var(--border-glass)",
-          boxShadow: "0 20px 50px rgba(0,0,0,0.6)",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
         }}
       >
         {/* Title & Decorative Icon */}
