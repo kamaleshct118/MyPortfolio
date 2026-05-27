@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { 
   Briefcase, 
   FolderGit, 
-  Terminal, 
   Key, 
   Plus, 
   Trash2, 
@@ -13,7 +12,6 @@ import {
   ArrowRight,
   LogOut,
   ChevronRight,
-  Sparkles,
   FolderOpen,
   X,
   Loader2,
@@ -22,7 +20,9 @@ import {
 } from "lucide-react";
 import type { ProjectData, ResumeData, ProcessingState } from "./types";
 import ChatbotWidget, { type ChatbotWidgetHandle } from "./components/ChatbotWidget";
+import ProcessingPopup from "./components/ProcessingPopup";
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:8000";
+
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<"home" | "admin">("home");

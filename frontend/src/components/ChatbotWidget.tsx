@@ -261,7 +261,6 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          border: "1px solid rgba(255, 255, 255, 0.15)",
           background: "rgba(11, 16, 35, 0.98)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
           boxShadow: "0 0 40px rgba(37,99,235,0.28), 0 10px 30px rgba(0, 0, 0, 0.6)",
