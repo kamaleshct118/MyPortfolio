@@ -271,9 +271,15 @@ export default function App() {
       document.documentElement.style.setProperty("--royal-blue", `hsl(${brandHue}, 80%, 53%)`);
       document.documentElement.style.setProperty("--violet-accent", `hsl(${accentHue}, 75%, 58%)`);
       
-      // Morph deep-navy background slightly to rich cosmic space violet-black
-      const bgHue = Math.floor(220 + scrollPercent * 50);
-      document.documentElement.style.setProperty("--bg-main", `hsl(${bgHue}, 60%, 4%)`);
+      // Calculate dynamic base hue for backgrounds (220 to 265)
+      const bgHue = Math.floor(220 + scrollPercent * 45);
+      
+      // Morph all surface and card background layers in perfect harmony!
+      document.documentElement.style.setProperty("--bg-main", `hsl(${bgHue}, 60%, 3%)`);
+      document.documentElement.style.setProperty("--bg-deep-navy", `hsl(${bgHue}, 55%, 6%)`);
+      document.documentElement.style.setProperty("--bg-secondary-navy", `hsl(${bgHue}, 50%, 9%)`);
+      document.documentElement.style.setProperty("--bg-card", `hsla(${bgHue}, 45%, 11%, 0.88)`);
+      document.documentElement.style.setProperty("--bg-card-hover", `hsla(${bgHue}, 45%, 14%, 0.96)`);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });

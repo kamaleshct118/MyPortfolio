@@ -70,6 +70,7 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 h1, h2, h3, h4, h5, h6 {
