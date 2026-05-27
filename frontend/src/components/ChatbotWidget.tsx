@@ -251,42 +251,50 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
         }}
       >
       {/* FAB Toggle Button */}
-      <button
-        id="chatbot-toggle-btn"
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          width: "60px",
-          height: "60px",
-          borderRadius: "50%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "rgba(11, 16, 35, 0.98)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          boxShadow: "0 0 40px rgba(37,99,235,0.28), 0 10px 30px rgba(0, 0, 0, 0.6)",
-          cursor: "pointer",
-          padding: 0,
-          overflow: "hidden",
-          position: "relative",
-          outline: "none",
-          transition: "transform 0.2s",
-        }}
-        className="hover:scale-105 active:scale-95"
-      >
-        {isOpen ? (
-          <X style={{ width: "22px", height: "22px", color: "#ffffff" }} />
-        ) : (
-          <>
-            <img
-              src="/kamal_icon.png"
-              alt="Ask Kamal"
-              style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
-            />
-            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-cyan-400 rounded-full animate-ping opacity-75" />
-            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-cyan-400 rounded-full border border-black/50" />
-          </>
+      <div style={{ position: "relative" }}>
+        {!isOpen && (
+          <div className="chatbot-ripple-wrapper">
+            <span className="chatbot-ripple delay-ripple-1" />
+            <span className="chatbot-ripple delay-ripple-2" />
+          </div>
         )}
-      </button>
+        <button
+          id="chatbot-toggle-btn"
+          onClick={() => setIsOpen(!isOpen)}
+          style={{
+            width: "60px",
+            height: "60px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(11, 16, 35, 0.98)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 0 40px rgba(37,99,235,0.28), 0 10px 30px rgba(0, 0, 0, 0.6)",
+            cursor: "pointer",
+            padding: 0,
+            overflow: "hidden",
+            position: "relative",
+            outline: "none",
+            transition: "transform 0.2s",
+          }}
+          className="hover:scale-105 active:scale-95"
+        >
+          {isOpen ? (
+            <X style={{ width: "22px", height: "22px", color: "#ffffff" }} />
+          ) : (
+            <>
+              <img
+                src="/kamal_icon.png"
+                alt="Ask Kamal"
+                style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+              />
+              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-cyan-400 rounded-full animate-ping opacity-75" />
+              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-cyan-400 rounded-full border border-black/50" />
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Ask Kamal label */}
       {!isOpen && (

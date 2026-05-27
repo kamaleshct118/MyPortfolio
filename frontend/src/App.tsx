@@ -24,6 +24,106 @@ import ProcessingPopup from "./components/ProcessingPopup";
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:8000";
 
 
+// --- HIGH-PERFORMANCE INTERACTIVE UI COMPONENTS ---
+
+// 🧲 Reusable Magnetic Physics Wrapper
+interface MagneticProps {
+  children: React.ReactElement<any>;
+}
+
+const Magnetic: React.FC<MagneticProps> = ({ children }) => {
+  const ref = useRef<any>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const el = ref.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+
+    el.style.transform = `translate(${x * 0.35}px, ${y * 0.35}px)`;
+    el.style.transition = "transform 0.1s ease-out";
+  };
+
+  const handleMouseLeave = () => {
+    const el = ref.current;
+    if (!el) return;
+
+    el.style.transform = "translate(0px, 0px)";
+    el.style.transition = "transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+  };
+
+  return React.cloneElement(children, {
+    ref,
+    onMouseMove: handleMouseMove,
+    onMouseLeave: handleMouseLeave,
+    style: {
+      ...children.props.style,
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  });
+};
+
+// 💻 Hacker Matrix Text Scramble Effect
+interface TextScrambleProps {
+  text: string;
+  speed?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+const TextScramble: React.FC<TextScrambleProps> = ({ text, speed = 30, className, style }) => {
+  const [displayText, setDisplayText] = useState(text);
+  const [isHovered, setIsHovered] = useState(false);
+  const chars = "10!@#$%^&*()_+{}[]|;:,.<>?/\\";
+
+  useEffect(() => {
+    if (!isHovered) {
+      setDisplayText(text);
+      return;
+    }
+
+    let iteration = 0;
+    const interval = setInterval(() => {
+      setDisplayText(
+        text
+          .split("")
+          .map((char, index) => {
+            if (char === " ") return " ";
+            if (index < iteration) {
+              return text[index];
+            }
+            return chars[Math.floor(Math.random() * chars.length)];
+          })
+          .join("")
+      );
+
+      if (iteration >= text.length) {
+        clearInterval(interval);
+      }
+
+      iteration += 1 / 3;
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [isHovered, text, speed]);
+
+  return (
+    <span 
+      className={className} 
+      style={{ ...style, cursor: "default" }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {displayText}
+    </span>
+  );
+};
+
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<"home" | "admin">("home");
   const [projects, setProjects] = useState<ProjectData[]>([]);
@@ -353,7 +453,7 @@ export default function App() {
     return (
       <div 
         key={key}
-        className="project-card group"
+        className={`project-card group ${isMarquee ? "" : "reveal-in"}`}
         style={{ 
           width: isMarquee ? "320px" : "100%",
           maxWidth: isMarquee ? "320px" : "360px",
@@ -388,7 +488,7 @@ export default function App() {
           {/* Title & Display Summary */}
           <div className="project-card-text-container" style={{ height: isExpanded ? "auto" : "110px" }}>
             <h4 className="project-card-title truncate">
-              {proj.title}
+              <TextScramble text={proj.title} />
             </h4>
             {/* Description paragraph — clamped or full */}
             <p style={{
@@ -582,17 +682,17 @@ export default function App() {
           <section className="hero-grid py-8 relative">
             {/* Left Column (Content) */}
             <div className="hero-left">
-              <h1 className="hero-title">
+              <h1 className="hero-title animate-entrance">
                 AI-Powered <br />
                 <span className="text-gradient">Portfolio Workspace</span>
               </h1>
               
-              <p className="hero-description">
+              <p className="hero-description animate-entrance delay-1">
                 Welcome to my AI and software engineering portfolio. Explore projects, system architectures, technical research, and development workflows through an interactive assistant experience.
               </p>
 
               {/* Skills/Tech Pills */}
-              <div className="hero-tags-wrapper">
+              <div className="hero-tags-wrapper animate-entrance delay-2">
                 {["PYTHON", "FASTAPI", "REACT", "TYPESCRIPT", "N8N", "CREW AI", "HUGGING FACE", "POSTGRESQL"].map((tech) => (
                   <span key={tech} className="hero-tag-pill">
                     {tech}
@@ -601,27 +701,31 @@ export default function App() {
               </div>
 
               {/* Action Buttons */}
-              <div className="hero-actions">
-                <button 
-                  onClick={() => {
-                    const chatBtn = document.getElementById("chatbot-toggle-btn") as HTMLButtonElement;
-                    if (chatBtn) chatBtn.click();
-                  }}
-                  className="px-6 py-3.5 rounded-xl btn-primary text-sm flex items-center gap-2"
-                >
-                  Chat with my AI
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-                <a 
-                  href="#projects" 
-                  className="px-6 py-3.5 rounded-xl btn-secondary text-sm flex items-center gap-2"
-                >
-                  Explore Projects
-                </a>
+              <div className="hero-actions animate-entrance delay-3">
+                <Magnetic>
+                  <button 
+                    onClick={() => {
+                      const chatBtn = document.getElementById("chatbot-toggle-btn") as HTMLButtonElement;
+                      if (chatBtn) chatBtn.click();
+                    }}
+                    className="px-6 py-3.5 rounded-xl btn-primary text-sm flex items-center gap-2"
+                  >
+                    Chat with my AI
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </Magnetic>
+                <Magnetic>
+                  <a 
+                    href="#projects" 
+                    className="px-6 py-3.5 rounded-xl btn-secondary text-sm flex items-center gap-2"
+                  >
+                    Explore Projects
+                  </a>
+                </Magnetic>
               </div>
 
               {/* Stats Counters */}
-              <div className="hero-stats-grid">
+              <div className="hero-stats-grid animate-entrance delay-4">
                 <div className="hero-stat-card">
                   <span className="hero-stat-value">{projects.length}</span>
                   <span className="hero-stat-label">Projects Indexed</span>
@@ -641,15 +745,15 @@ export default function App() {
               </div>
 
               {/* Social links */}
-              <div className="hero-socials">
+              <div className="hero-socials animate-entrance delay-4">
                 <a 
-                  href="https://github.com" 
+                  href="https://github.com/kamaleshct118" 
                   target="_blank" 
                   rel="noreferrer" 
                   className="hero-social-link"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ width: "16px", height: "16px", flexShrink: 0 }}>
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.3-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.3 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                   </svg>
                   GitHub
                 </a>
@@ -659,23 +763,16 @@ export default function App() {
                   rel="noreferrer" 
                   className="hero-social-link"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{ width: "16px", height: "16px", flexShrink: 0 }}>
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                   </svg>
                   LinkedIn
-                </a>
-                <a 
-                  href="mailto:contact@example.com" 
-                  className="hero-social-link"
-                >
-                  <Mail className="w-4 h-4" />
-                  Email
                 </a>
               </div>
             </div>
 
             {/* Right Column (Profile Avatar Card) */}
-            <div className="hero-right">
+            <div className="hero-right animate-entrance delay-5">
               <div className="hero-avatar-container">
                 {/* Glowing effect background */}
                 <div className="hero-avatar-glow" />
@@ -688,16 +785,33 @@ export default function App() {
                 </div>
               </div>
               <h3 className="hero-right-name">Kamalesh V</h3>
-              <p className="hero-right-title">AI · Software Engineer</p>
+              <p className="hero-right-title">
+                <TextScramble text="AI · Software Engineer" />
+              </p>
               <div className="hero-right-location">
                 <MapPin className="w-4 h-4 text-cyan-400" />
                 <span>Tamil Nadu, India</span>
+              </div>
+              <div className="hero-right-location" style={{ marginTop: "6px" }}>
+                <Mail className="w-4 h-4 text-cyan-400" />
+                <a 
+                  href="mailto:vkamalesh2006@gmail.com" 
+                  style={{ 
+                    textDecoration: "none", 
+                    color: "var(--text-muted)", 
+                    transition: "color 0.2s" 
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = "var(--secondary-soft)"}
+                  onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-muted)"}
+                >
+                  vkamalesh2006@gmail.com
+                </a>
               </div>
             </div>
           </section>
 
           {/* RESUME DISPLAY OVERVIEW (Pipeline 1 Output) */}
-          <section className="space-y-6">
+          <section className="space-y-6 reveal-in">
             <div className="flex items-center gap-3.5">
               <div className="p-2.5 rounded-xl text-cyan-400 border border-cyan-500/15" style={{ background: "rgba(6,182,212,0.12)" }}>
                 <Briefcase className="w-5 h-5" />
@@ -801,7 +915,7 @@ export default function App() {
           </section>
 
           {/* PROJECTS GRID LIST SECTION (Pipeline 1 Output) */}
-          <section id="projects" className="space-y-8 scroll-mt-24">
+          <section id="projects" className="space-y-8 scroll-mt-24 reveal-in">
             <div className="flex items-center gap-3.5">
               <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/15">
                 <FolderGit className="w-5 h-5" />

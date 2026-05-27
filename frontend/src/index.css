@@ -898,6 +898,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  perspective: 1000px; /* Enable 3D space depth */
 }
 
 @media (min-width: 640px) {
@@ -932,6 +933,13 @@ button {
   -webkit-backdrop-filter: blur(12px);
   padding: 4px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  transform-style: preserve-3d; /* Keep it in 3D space */
+  transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Custom springy ease-out */
+}
+
+/* 🪙 Trigger the 3D coin spin on hover */
+.hero-avatar-container:hover .hero-avatar-circle {
+  transform: rotateY(360deg);
 }
 
 .hero-avatar-circle img {
@@ -978,3 +986,149 @@ button {
   height: 12px !important;
   color: var(--secondary-soft) !important;
 }
+
+/* =========================================================================
+   MODERN CSS SCROLL-DRIVEN ENTRY ANIMATIONS
+   ========================================================================= */
+
+@supports (animation-timeline: view()) {
+  .reveal-in {
+    animation: reveal-on-scroll linear both;
+    animation-timeline: view();
+    animation-range: entry 12% cover 30%;
+  }
+}
+
+@keyframes reveal-on-scroll {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.965);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* =========================================================================
+   STAGGERED HERO ENTRANCE ON LOAD ANIMATIONS
+   ========================================================================= */
+
+@keyframes fadeInUpEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-entrance {
+  opacity: 0;
+  animation: fadeInUpEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-1 { animation-delay: 120ms; }
+.delay-2 { animation-delay: 240ms; }
+.delay-3 { animation-delay: 360ms; }
+.delay-4 { animation-delay: 480ms; }
+.delay-5 { animation-delay: 600ms; }
+
+/* =========================================================================
+   🌌 AI AMBIENT NEBULA (MORPHING BACKGROUNDS)
+   ========================================================================= */
+
+@keyframes morphNebula1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.09), transparent 55%);
+  }
+  33% {
+    transform: translate(40px, -60px) scale(1.15) rotate(120deg);
+    border-radius: 42% 58% 70% 30% / 45% 45% 65% 55%;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.11), transparent 55%);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.92) rotate(240deg);
+    border-radius: 70% 30% 52% 48% / 30% 65% 35% 70%;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.09), transparent 55%);
+  }
+}
+
+@keyframes morphNebula2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1) rotate(0deg);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.07), transparent 55%);
+  }
+  50% {
+    transform: translate(-50px, 50px) scale(1.2) rotate(-180deg);
+    border-radius: 35% 65% 45% 55% / 55% 35% 65% 45%;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.08), transparent 55%);
+  }
+}
+
+.ambient-glow-1 {
+  animation: morphNebula1 22s ease-in-out infinite !important;
+}
+
+.ambient-glow-2 {
+  animation: morphNebula2 28s ease-in-out infinite !important;
+}
+
+/* =========================================================================
+   📡 CHATBOT SONAR RADAR BEACON
+   ========================================================================= */
+
+.chatbot-ripple-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.chatbot-ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 1.5px solid rgba(6, 182, 212, 0.45); /* Brighter border by 10% */
+  background: rgba(6, 182, 212, 0.08); /* Brighter ambient fill */
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.2); /* Enhanced glow radius */
+  transform: scale(1);
+  opacity: 0;
+  animation: sonar-ripple 3.2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+}
+
+.delay-ripple-1 {
+  animation-delay: 0s;
+}
+
+.delay-ripple-2 {
+  animation-delay: 1.6s;
+}
+
+@keyframes sonar-ripple {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.9; /* Increased starting opacity by 10% */
+  }
+  100% {
+    transform: scale(2.42); /* Increased expanding radius by 5% */
+    opacity: 0;
+  }
+}
+
+
+

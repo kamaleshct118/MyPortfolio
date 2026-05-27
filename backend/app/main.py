@@ -283,7 +283,7 @@ def get_project(project_id: int):
     return proj
 
 @app.post("/api/projects/save", tags=["Projects"])
-async def save_project(
+def save_project(
     project_id: str = Form(None), # "none" or integer as string
     title: str = Form(...),
     image_url: str = Form(None),
