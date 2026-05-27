@@ -27,18 +27,23 @@ def generate_summary(text: str, mode: str = "project") -> str:
         
         Write summary:"""
     else:
-        prompt = f"""You are a senior recruiter.
-        Read this developer's resume content and write a highly polished, professional summary introducing them.
+        prompt = f"""You are the developer whose resume is provided below.
+        Write an ultra-compelling, high-impact first-person introduction of yourself (using "I", "my", "me") targeted at recruiters, based strictly on the uploaded resume details.
         
         Instructions:
-        1. Keep it brief: exactly 2 to 3 sentences (under 250 characters).
-        2. Highlight their core expertise, senior skills, and general experience.
-        3. Do NOT use bullet points, headers, or introductory conversational text.
+        1. Write strictly in the FIRST PERSON (e.g., "I am a Fullstack Developer...", "I specialize in...", "My core expertise lies in...").
+        2. Identify your primary developer title (e.g., Fullstack, Software, Backend, or AI Engineer) and core technical stack (e.g. React/Node, Python/FastAPI, or Java/Spring Boot) SOLELY from the uploaded resume.
+        3. Make it highly attractive to recruiters by emphasizing:
+           - Your core engineering strengths and primary tools found in the resume.
+           - Your problem-solving drive and ability to deliver production-grade applications that resolve real-world bottlenecks.
+        4. Do NOT hallucinate or include any skills, projects, or technical tools that are NOT explicitly mentioned in the resume.
+        5. Keep it brief: exactly 3 to 4 concise sentences (approximately 300-380 characters) so it fits beautifully in the Developer Overview without vertical compression.
+        6. Start directly with the first-person introduction. Do NOT include conversational greetings, meta-comments, markdown quotes, or headers.
         
         Resume Content:
-        {text[:5000]}
+        {text[:6000]}
         
-        Write summary:"""
+        Write your professional first-person introduction:"""
         
     try:
         response = llm.invoke(prompt)

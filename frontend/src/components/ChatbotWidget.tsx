@@ -262,7 +262,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
           border: "1px solid rgba(255, 255, 255, 0.15)",
           background: "rgba(11, 16, 35, 0.98)",
           border: "1px solid rgba(255, 255, 255, 0.08)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+          boxShadow: "0 0 40px rgba(37,99,235,0.28), 0 10px 30px rgba(0, 0, 0, 0.6)",
           cursor: "pointer",
           padding: 0,
           overflow: "hidden",
@@ -326,8 +326,8 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
             boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             border: "1px solid var(--border-glass)",
             borderRadius: "var(--radius-lg)",
-            background: "rgba(11, 16, 35, 0.98)",
-            backdropFilter: "blur(12px)",
+            background: "linear-gradient(180deg, rgba(11,23,48,0.92), rgba(8,12,30,0.95))",
+            backdropFilter: "blur(18px)",
             transition: "width 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
             zIndex: 99,
           }}
@@ -352,7 +352,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                 <img
                   src="http://localhost:8000/static/images/kamal_icon.png"
                   alt="AI Assistant"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                 />
               </div>
               <div>
@@ -444,7 +444,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                       <img
                         src="http://localhost:8000/static/images/kamal_icon.png"
                         alt="Bot"
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                       />
                     )}
                   </div>
@@ -461,7 +461,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                         overflowWrap: "anywhere",
                         ...(msg.sender === "user"
                           ? {
-                              background: "rgba(37,99,235,0.18)",
+                              background: "linear-gradient(135deg, rgba(37,99,235,0.22), rgba(79,70,229,0.18))",
                               color: "#D8E4FF",
                               border: "1px solid rgba(37,99,235,0.25)",
                             }
@@ -544,7 +544,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                     <img
                       src="http://localhost:8000/static/images/kamal_icon.png"
                       alt="Bot"
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                     />
                   </div>
                   <div

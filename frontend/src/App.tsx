@@ -16,7 +16,9 @@ import {
   Sparkles,
   FolderOpen,
   X,
-  Loader2
+  Loader2,
+  Mail,
+  MapPin
 } from "lucide-react";
 import type { ProjectData, ResumeData, ProcessingState } from "./types";
 import ChatbotWidget, { type ChatbotWidgetHandle } from "./components/ChatbotWidget";
@@ -516,12 +518,7 @@ export default function App() {
       />
 
       {/* --- PREMIUM NAVIGATION HEADER --- */}
-      <header 
-        className="w-full py-3 sticky top-0 z-40 backdrop-blur-sm border-b border-white/5"
-        style={{
-          background: "rgba(4,8,22,0.95)"
-        }}
-      >
+      <header className="w-full py-5 sticky top-0 z-40 backdrop-blur-md border-b border-white/5 bg-black/20">
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentPage("home")}>
             <div
@@ -538,7 +535,7 @@ export default function App() {
                 <img
                   src="http://localhost:8000/static/images/kamal_icon.png"
                   alt="Kamalesh V"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                 />
               </div>
             <div>
@@ -580,56 +577,130 @@ export default function App() {
 
       {/* --- VISITOR PAGE (HOME) --- */}
       {currentPage === "home" && (
-        <main className="flex-1 container space-y-32" style={{ paddingTop: "120px", paddingBottom: "120px" }}>
+        <main className="flex-1 container py-14 space-y-24">
           
           {/* HERO SECTION */}
-          <section 
-            className="text-center max-w-3xl mx-auto space-y-6 py-8 relative"
-            style={{
-              background: `
-                radial-gradient(circle at top left, rgba(37,99,235,0.08), transparent 50%),
-                radial-gradient(circle at top center, rgba(167,139,250,0.05), transparent 60%),
-                radial-gradient(circle at right, rgba(124,58,237,0.05), transparent 50%),
-                #040816
-              `,
-              borderRadius: "var(--radius-lg)",
-              padding: "60px 40px"
-            }}
-          >
-            <h2 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight">
-              AI-Powered <br />
-              <span className="text-gradient">Portfolio Workspace</span>
-            </h2>
-            <p className="text-md sm:text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
-              Welcome to my AI and software engineering portfolio. Explore projects, system architectures, technical research, and development workflows through an interactive assistant experience.
-            </p>
-            <div className="pt-4 flex justify-center gap-4">
-              <button 
-                onClick={() => {
-                  const chatBtn = document.getElementById("chatbot-toggle-btn") as HTMLButtonElement;
-                  if (chatBtn) chatBtn.click();
-                }}
-                className="px-6 py-3.5 rounded-xl btn-primary text-sm flex items-center gap-2"
-              >
-                Chat with my AI
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              <a 
-                href="#projects" 
-                className="px-6 py-3.5 rounded-xl btn-secondary text-sm flex items-center gap-2"
-              >
-                Explore Projects
-              </a>
+          <section className="hero-grid py-8 relative">
+            {/* Left Column (Content) */}
+            <div className="hero-left">
+              <h1 className="hero-title">
+                AI-Powered <br />
+                <span className="text-gradient">Portfolio Workspace</span>
+              </h1>
+              
+              <p className="hero-description">
+                Welcome to my AI and software engineering portfolio. Explore projects, system architectures, technical research, and development workflows through an interactive assistant experience.
+              </p>
+
+              {/* Skills/Tech Pills */}
+              <div className="hero-tags-wrapper">
+                {["PYTHON", "FASTAPI", "REACT", "TYPESCRIPT", "N8N", "CREW AI", "HUGGING FACE", "POSTGRESQL"].map((tech) => (
+                  <span key={tech} className="hero-tag-pill">
+                    {tech}
+                  </span>
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="hero-actions">
+                <button 
+                  onClick={() => {
+                    const chatBtn = document.getElementById("chatbot-toggle-btn") as HTMLButtonElement;
+                    if (chatBtn) chatBtn.click();
+                  }}
+                  className="px-6 py-3.5 rounded-xl btn-primary text-sm flex items-center gap-2"
+                >
+                  Chat with my AI
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <a 
+                  href="#projects" 
+                  className="px-6 py-3.5 rounded-xl btn-secondary text-sm flex items-center gap-2"
+                >
+                  Explore Projects
+                </a>
+              </div>
+
+              {/* Stats Counters */}
+              <div className="hero-stats-grid">
+                <div className="hero-stat-card">
+                  <span className="hero-stat-value">{projects.length}</span>
+                  <span className="hero-stat-label">Projects Indexed</span>
+                </div>
+                <div className="hero-stat-card">
+                  <span className="hero-stat-value">N8N</span>
+                  <span className="hero-stat-label">RAG Engine</span>
+                </div>
+                <div className="hero-stat-card">
+                  <span className="hero-stat-value">Crew AI</span>
+                  <span className="hero-stat-label">LLM Orchestrator</span>
+                </div>
+                <div className="hero-stat-card">
+                  <span className="hero-stat-value">Hugging Face</span>
+                  <span className="hero-stat-label">AI Tools</span>
+                </div>
+              </div>
+
+              {/* Social links */}
+              <div className="hero-socials">
+                <a 
+                  href="https://github.com" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="hero-social-link"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                  </svg>
+                  GitHub
+                </a>
+                <a 
+                  href="https://linkedin.com" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="hero-social-link"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                  LinkedIn
+                </a>
+                <a 
+                  href="mailto:contact@example.com" 
+                  className="hero-social-link"
+                >
+                  <Mail className="w-4 h-4" />
+                  Email
+                </a>
+              </div>
+            </div>
+
+            {/* Right Column (Profile Avatar Card) */}
+            <div className="hero-right">
+              <div className="hero-avatar-container">
+                {/* Glowing effect background */}
+                <div className="hero-avatar-glow" />
+                {/* Inner circle */}
+                <div className="hero-avatar-circle">
+                  <img
+                    src="http://localhost:8000/static/images/kamal_icon.png"
+                    alt="Kamalesh V"
+                  />
+                </div>
+              </div>
+              <h3 className="hero-right-name">Kamalesh V</h3>
+              <p className="hero-right-title">AI · Software Engineer</p>
+              <div className="hero-right-location">
+                <MapPin className="w-4 h-4 text-cyan-400" />
+                <span>Tamil Nadu, India</span>
+              </div>
             </div>
           </section>
 
           {/* RESUME DISPLAY OVERVIEW (Pipeline 1 Output) */}
-          <section 
-            className="space-y-6"
-            style={{ borderTop: "1px solid rgba(255, 255, 255, 0.04)", paddingTop: "96px" }}
-          >
+          <section className="space-y-6">
             <div className="flex items-center gap-3.5">
-              <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/15">
+              <div className="p-2.5 rounded-xl text-cyan-400 border border-cyan-500/15" style={{ background: "rgba(6,182,212,0.12)" }}>
                 <Briefcase className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold tracking-wide text-white">Professional Profile</h3>
@@ -637,10 +708,10 @@ export default function App() {
 
             {resume.exists ? (
               <div 
-                className="p-8 glass-panel flex flex-col gap-6"
-                style={{ background: "rgba(255, 255, 255, 0.02)" }}
+                className="p-8 glass-panel flex flex-col gap-6 profile-card-content"
+                style={{ background: "linear-gradient(145deg, rgba(11,23,48,0.88), rgba(7,18,38,0.95))" }}
               >
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="flex flex-col md:flex-row items-start md:items-start justify-between gap-6">
                   <div className="space-y-3 max-w-3xl">
                     <h4 className="text-md font-semibold text-white tracking-wide">Developer Overview</h4>
                     <p className="text-sm text-text-secondary leading-relaxed">
@@ -651,14 +722,14 @@ export default function App() {
                     </span>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-3 shrink-0 self-stretch md:self-auto">
+                  <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-3 shrink-0 self-start md:self-auto">
                     <a 
                       href={`http://localhost:8000${resume.download_url}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-5 py-3 rounded-xl btn-secondary text-xs font-semibold flex items-center gap-2.5 justify-center"
+                      className="px-5 py-3 rounded-xl btn-primary text-xs font-semibold flex items-center gap-2.5 justify-center"
                     >
-                      <Download className="w-4 h-4 text-cyan-400" />
+                      <Download className="w-4 h-4 text-white" />
                       Download CV
                     </a>
                   </div>
@@ -731,11 +802,7 @@ export default function App() {
           </section>
 
           {/* PROJECTS GRID LIST SECTION (Pipeline 1 Output) */}
-          <section 
-            id="projects" 
-            className="space-y-8 scroll-mt-24"
-            style={{ borderTop: "1px solid rgba(255, 255, 255, 0.04)", paddingTop: "96px" }}
-          >
+          <section id="projects" className="space-y-8 scroll-mt-24">
             <div className="flex items-center gap-3.5">
               <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/15">
                 <FolderGit className="w-5 h-5" />
@@ -767,7 +834,7 @@ export default function App() {
 
       {/* --- DEVELOPER MANAGEMENT DASHBOARD (ADMIN) --- */}
       {currentPage === "admin" && adminToken && (
-        <main className="flex-1 container space-y-16" style={{ paddingTop: "120px", paddingBottom: "120px" }}>
+        <main className="flex-1 container py-14 space-y-12">
           
           <div className="flex justify-between items-center">
             <div>
@@ -910,13 +977,10 @@ export default function App() {
       )}
 
       {/* --- FOOTER & HIDDEN DEVELOPER ENTRANCE --- */}
-      <footer 
-        className="w-full py-8 border-t border-white/5"
-        style={{ background: "rgba(4,8,22,0.6)" }}
-      >
+      <footer className="w-full py-8 border-t border-white/5 bg-black/10">
         <div className="container flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-xs text-text-muted">
-            &copy; {new Date().getFullYear()} AI Portfolio Assistant. Powered by local FAISS RAG.
+            &copy; {new Date().getFullYear()} Powered and Developed by Kamalesh V
           </p>
           
           {currentPage === "home" && (
@@ -943,8 +1007,8 @@ export default function App() {
           <div 
             className="w-[360px] p-6 glass-panel space-y-4 text-left relative"
             style={{ 
-              background: "rgba(11,16,35,0.98)",
-              backdropFilter: "blur(12px)"
+              background: "linear-gradient(145deg, rgba(10,14,35,0.96), rgba(17,24,39,0.96))",
+              backdropFilter: "blur(18px)"
             }}
           >
             <div className="flex justify-between items-center">
@@ -982,8 +1046,8 @@ export default function App() {
           <div 
             className="w-[500px] p-8 glass-panel space-y-6 text-left relative my-auto"
             style={{ 
-              background: "rgba(11,16,35,0.98)",
-              backdropFilter: "blur(12px)"
+              background: "linear-gradient(145deg, rgba(10,14,35,0.96), rgba(17,24,39,0.96))",
+              backdropFilter: "blur(18px)"
             }}
           >
             <div className="flex justify-between items-center">
