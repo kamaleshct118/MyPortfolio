@@ -26,9 +26,9 @@ function renderMarkdown(md: string): string {
   });
 
   // Headings (must come before inline bold/italic so ** inside headings works)
-  html = html.replace(/^[ \t]*### (.+)/gm, '<h3 style="font-size:13px;font-weight:700;color:#c4b5fd;margin:10px 0 4px;">$1</h3>');
-  html = html.replace(/^[ \t]*## (.+)/gm,  '<h2 style="font-size:14px;font-weight:700;color:#c4b5fd;margin:10px 0 4px;">$1</h2>');
-  html = html.replace(/^[ \t]*# (.+)/gm,   '<h1 style="font-size:15px;font-weight:700;color:#c4b5fd;margin:10px 0 4px;">$1</h1>');
+  html = html.replace(/^[ \t]*### (.+)/gm, '<h3 style="font-size:12.5px;font-weight:700;color:var(--electric-cyan, #06B6D4);text-shadow:0 0 8px rgba(6,182,212,0.3);margin:14px 0 6px;font-family:var(--font-display, sans-serif);letter-spacing:0.02em;text-transform:uppercase;">$1</h3>');
+  html = html.replace(/^[ \t]*## (.+)/gm,  '<h2 style="font-size:14px;font-weight:700;color:var(--indigo-luxury, #A78BFA);text-shadow:0 0 10px rgba(167,139,250,0.35);margin:16px 0 8px;font-family:var(--font-display, sans-serif);letter-spacing:-0.01em;border-left:2.5px solid var(--electric-cyan, #06B6D4);padding-left:8px;line-height:1.35;">$1</h2>');
+  html = html.replace(/^[ \t]*# (.+)/gm,   '<h1 style="font-size:15.5px;font-weight:800;color:#FFFFFF;text-shadow:0 0 12px rgba(255,255,255,0.25);margin:18px 0 10px;font-family:var(--font-display, sans-serif);letter-spacing:-0.02em;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:4px;line-height:1.3;">$1</h1>');
 
   // Bold **text**
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong style="color:#e2e8f0;font-weight:600;">$1</strong>');
@@ -322,25 +322,31 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
       </div>
 
       {/* Chat Panel - anchored independently */}
-      {isOpen && (
-        <div
-          className="glass-panel flex flex-col overflow-hidden"
-          style={{
-            position: "fixed",
-            top: "50%",
-            right: "24px",
-            transform: "translateY(-50%)",
-            width: panelWidth,
-            height: "560px",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-            border: "1px solid var(--border-glass)",
-            borderRadius: "var(--radius-lg)",
-            background: "linear-gradient(180deg, rgba(11,23,48,0.92), rgba(8,12,30,0.95))",
-            backdropFilter: "blur(18px)",
-            transition: "width 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-            zIndex: 99,
-          }}
-        >
+      <div
+        className="glass-panel flex flex-col overflow-hidden"
+        style={{
+          position: "fixed",
+          top: "50%",
+          right: "24px",
+          transform: isOpen 
+            ? "translateY(-50%) scale(1) rotateY(0deg) translateZ(0px)" 
+            : "translateY(-45%) scale(0.82) rotateY(20deg) translateZ(-50px)",
+          transformOrigin: "bottom right",
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? "all" : "none",
+          width: panelWidth,
+          height: "560px",
+          boxShadow: "0 10px 40px rgba(0,0,0,0.5), 0 0 50px rgba(124, 58, 237, 0.08)",
+          border: "1px solid var(--border-glass)",
+          borderRadius: "var(--radius-lg)",
+          background: "linear-gradient(180deg, var(--bg-card), var(--bg-main))",
+          backdropFilter: "blur(18px)",
+          transition: "transform 0.48s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.38s ease, width 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.5s ease",
+          zIndex: 99,
+          transformStyle: "preserve-3d",
+          perspective: "1000px"
+        }}
+      >
           {/* Header */}
           <div
             className="px-5 py-2.5 flex items-center justify-between"
@@ -422,6 +428,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
               {messages.map((msg) => (
                 <div
                   key={msg.id}
+                  className="message-bubble-animate"
                   style={{
                     display: "flex",
                     gap: "10px",
@@ -470,14 +477,14 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                         overflowWrap: "anywhere",
                         ...(msg.sender === "user"
                           ? {
-                              background: "linear-gradient(135deg, rgba(37,99,235,0.22), rgba(79,70,229,0.18))",
-                              color: "#D8E4FF",
-                              border: "1px solid rgba(37,99,235,0.25)",
+                              background: "linear-gradient(135deg, var(--primary-glow), rgba(124, 58, 237, 0.15))",
+                              color: "#F8FAFC",
+                              border: "1px solid var(--border-glass-active)",
                             }
                           : {
-                              background: "rgba(124,58,237,0.14)",
+                              background: "rgba(255, 255, 255, 0.03)",
                               color: "#F8FAFC",
-                              border: "1px solid rgba(255,255,255,0.06)",
+                              border: "1px solid var(--border-glass)",
                             }),
                       }}
                     >
@@ -539,7 +546,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
 
               {/* Typing indicator */}
               {isTyping && (
-                <div style={{ display: "flex", gap: "10px", alignSelf: "flex-start" }}>
+                <div style={{ display: "flex", gap: "10px", alignSelf: "flex-start" }} className="message-bubble-animate">
                   <div
                     style={{
                       width: "28px",
@@ -547,7 +554,11 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                       borderRadius: "50%",
                       overflow: "hidden",
                       flexShrink: 0,
-                      border: "1px solid rgba(168,85,247,0.2)",
+                      border: "1px solid var(--border-glass)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(255, 255, 255, 0.02)",
                     }}
                   >
                     <img
@@ -558,18 +569,48 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                   </div>
                   <div
                     style={{
-                      padding: "10px 16px",
+                      padding: "12px 18px",
                       borderRadius: "18px 18px 18px 4px",
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.06)",
+                      background: "rgba(255, 255, 255, 0.03)",
+                      border: "1px solid var(--border-glass)",
                       display: "flex",
                       gap: "6px",
                       alignItems: "center",
                     }}
                   >
-                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <span 
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: "var(--electric-cyan, #06b6d4)",
+                        display: "inline-block",
+                        animation: "typingPulse 1.4s infinite ease-in-out",
+                        animationDelay: "0s",
+                      }}
+                    />
+                    <span 
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: "var(--electric-cyan, #06b6d4)",
+                        display: "inline-block",
+                        animation: "typingPulse 1.4s infinite ease-in-out",
+                        animationDelay: "0.2s",
+                      }}
+                    />
+                    <span 
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: "var(--electric-cyan, #06b6d4)",
+                        display: "inline-block",
+                        animation: "typingPulse 1.4s infinite ease-in-out",
+                        animationDelay: "0.4s",
+                      }}
+                    />
                   </div>
                 </div>
               )}
@@ -632,7 +673,6 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
             </button>
           </form>
         </div>
-      )}
     </>
   );
 });
