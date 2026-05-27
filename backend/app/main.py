@@ -235,6 +235,7 @@ def delete_resume(is_admin: bool = Depends(auth.require_admin)):
             
         # 3. Evict from retriever cache and delete from Supabase Vector Store
         retriever.unload_db("resume")
+        indexer.delete_index("resume")
         
         # 4. Delete Supabase record
         database.delete_resume_metadata()
@@ -471,8 +472,9 @@ def delete_project(project_id: int, is_admin: bool = Depends(auth.require_admin)
         if os.path.exists(vector_path):
             shutil.rmtree(vector_path)
             
-        # 4. Evict from retriever memory cache
+        # 4. Evict from retriever memory cache and delete from Supabase Vector Store
         retriever.unload_db(proj["namespace"])
+        indexer.delete_index(proj["namespace"])
         
         # 5. Delete metadata
         database.delete_project_metadata(project_id)
