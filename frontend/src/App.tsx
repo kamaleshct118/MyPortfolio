@@ -723,7 +723,7 @@ export default function App() {
 
                   <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-3 shrink-0 self-start md:self-auto">
                     <a 
-                      href={`${API_BASE_URL}${resume.download_url}`}
+                      href={resume.download_url?.startsWith("http") ? resume.download_url : `${API_BASE_URL}${resume.download_url}`}
                       target="_blank"
                       rel="noreferrer"
                       className="px-5 py-3 rounded-xl btn-primary text-xs font-semibold flex items-center gap-2.5 justify-center"
@@ -748,14 +748,14 @@ export default function App() {
                     <div className="mt-4 rounded-xl overflow-hidden border border-white/5 bg-black/30 w-full">
                       {resume.download_url?.toLowerCase().endsWith(".pdf") ? (
                         <iframe 
-                          src={`${API_BASE_URL}${resume.download_url}#toolbar=0&navpanes=0`}
+                          src={resume.download_url?.startsWith("http") ? `${resume.download_url}#toolbar=0&navpanes=0` : `${API_BASE_URL}${resume.download_url}#toolbar=0&navpanes=0`}
                           title="Original PDF Resume"
                           className="w-full border-none"
                           style={{ height: "1200px" }}
                         />
                       ) : (
                         <iframe 
-                          src={`${API_BASE_URL}${resume.download_url}`}
+                          src={resume.download_url?.startsWith("http") ? resume.download_url : `${API_BASE_URL}${resume.download_url}`}
                           title="Original Resume File"
                           className="w-full border-none p-6 text-text-secondary"
                           style={{ height: "600px" }}
