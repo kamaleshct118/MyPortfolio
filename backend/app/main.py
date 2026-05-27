@@ -43,6 +43,17 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory=config.UPLOAD_DIR), name="uploads")
 app.mount("/static", StaticFiles(directory=config.STATIC_DIR), name="static")
 
+@app.get("/", tags=["General"])
+def read_root():
+    """Welcome endpoint displaying API operational status."""
+    return {
+        "status": "online",
+        "service": "AI Portfolio Knowledge Assistant API",
+        "version": "1.0.0",
+        "documentation": "/docs"
+    }
+
+
 @app.on_event("startup")
 def startup_event():
     """Initializes the database on application startup."""

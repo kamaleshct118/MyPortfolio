@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } f
 import { X, Send, User, FileText, Maximize2, Minimize2 } from "lucide-react";
 import type { ChatMessage } from "../types";
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:8000";
+
 // Public API exposed to parent via ref
 export interface ChatbotWidgetHandle {
   openAndSubmit: (query: string) => void;
@@ -110,7 +112,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
         .filter((msg) => msg.id !== "welcome")
         .map((msg) => ({ sender: msg.sender, text: msg.text, namespace: msg.namespace }));
 
-      const response = await fetch("http://localhost:8000/api/chat", {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text, history: historyData }),
@@ -193,7 +195,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
           namespace: msg.namespace 
         }));
 
-      const response = await fetch("http://localhost:8000/api/chat", {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage.text, history: historyData }),
@@ -277,7 +279,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
         ) : (
           <>
             <img
-              src="http://localhost:8000/static/images/kamal_icon.png"
+              src="/kamal_icon.png"
               alt="Ask Kamal"
               style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
             />
@@ -350,7 +352,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                 }}
               >
                 <img
-                  src="http://localhost:8000/static/images/kamal_icon.png"
+                  src="/kamal_icon.png"
                   alt="AI Assistant"
                   style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                 />
@@ -442,7 +444,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                       <User style={{ width: "13px", height: "13px", color: "#22d3ee" }} />
                     ) : (
                       <img
-                        src="http://localhost:8000/static/images/kamal_icon.png"
+                        src="/kamal_icon.png"
                         alt="Bot"
                         style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                       />
@@ -542,7 +544,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
                     }}
                   >
                     <img
-                      src="http://localhost:8000/static/images/kamal_icon.png"
+                      src="/kamal_icon.png"
                       alt="Bot"
                       style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                     />

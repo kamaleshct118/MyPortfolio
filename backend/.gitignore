@@ -1,0 +1,11 @@
+# Local environment keys
+.env
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Local data fallbacks
+data/
+uploads/
+vectorstore/

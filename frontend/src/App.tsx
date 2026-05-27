@@ -22,8 +22,7 @@ import {
 } from "lucide-react";
 import type { ProjectData, ResumeData, ProcessingState } from "./types";
 import ChatbotWidget, { type ChatbotWidgetHandle } from "./components/ChatbotWidget";
-import ProcessingPopup from "./components/ProcessingPopup";
-
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:8000";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<"home" | "admin">("home");
@@ -70,7 +69,7 @@ export default function App() {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/projects");
+      const res = await fetch(`${API_BASE_URL}/api/projects`);
       if (res.ok) {
         const data = await res.json();
         setProjects(data.projects);
@@ -82,7 +81,7 @@ export default function App() {
 
   const fetchResume = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/resume");
+      const res = await fetch(`${API_BASE_URL}/api/resume`);
       if (res.ok) {
         const data = await res.json();
         setResume(data);
@@ -98,7 +97,7 @@ export default function App() {
     e.preventDefault();
     setAuthError("");
     try {
-      const res = await fetch("http://localhost:8000/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ secret_key: secretKeyInput }),
@@ -166,7 +165,7 @@ export default function App() {
 
     try {
       // Connect to the streaming save endpoint
-      const response = await fetch("http://localhost:8000/api/projects/save", {
+      const response = await fetch(`${API_BASE_URL}/api/projects/save`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${adminToken}`
@@ -217,7 +216,7 @@ export default function App() {
   const handleDeleteProject = async (id: number) => {
     if (!confirm("Are you sure you want to delete this project and its vector knowledge namespace?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/projects/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${adminToken}`
@@ -242,7 +241,7 @@ export default function App() {
     
     // Fetch readme content from URL
     try {
-      const res = await fetch(`http://localhost:8000${proj.readme_url}`);
+      const res = await fetch(`${API_BASE_URL}${proj.readme_url}`);
       if (res.ok) {
         const text = await res.text();
         setFormReadmeText(text);
@@ -278,7 +277,7 @@ export default function App() {
     formData.append("file", resumeFile);
 
     try {
-      const response = await fetch("http://localhost:8000/api/resume/save", {
+      const response = await fetch(`${API_BASE_URL}/api/resume/save`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${adminToken}`
@@ -320,7 +319,7 @@ export default function App() {
   const handleDeleteResume = async () => {
     if (!confirm("Are you sure you want to delete your resume and evict its vectors?")) return;
     try {
-      const res = await fetch("http://localhost:8000/api/resume", {
+      const res = await fetch(`${API_BASE_URL}/api/resume`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${adminToken}`
@@ -366,7 +365,7 @@ export default function App() {
           {proj.image_path ? (
             <div className="project-card-image-wrapper">
               <img 
-                src={proj.image_path.startsWith("http") ? proj.image_path : `http://localhost:8000${proj.image_path}`}
+                src={proj.image_path.startsWith("http") ? proj.image_path : `${API_BASE_URL}${proj.image_path}`}
                 alt={proj.title}
                 className="project-card-image"
               />
@@ -533,7 +532,7 @@ export default function App() {
                 }}
               >
                 <img
-                  src="http://localhost:8000/static/images/kamal_icon.png"
+                  src="/kamal_icon.png"
                   alt="Kamalesh V"
                   style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                 />
@@ -683,7 +682,7 @@ export default function App() {
                 {/* Inner circle */}
                 <div className="hero-avatar-circle">
                   <img
-                    src="http://localhost:8000/static/images/kamal_icon.png"
+                    src="/kamal_icon.png"
                     alt="Kamalesh V"
                   />
                 </div>
@@ -724,7 +723,7 @@ export default function App() {
 
                   <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-3 shrink-0 self-start md:self-auto">
                     <a 
-                      href={`http://localhost:8000${resume.download_url}`}
+                      href={`${API_BASE_URL}${resume.download_url}`}
                       target="_blank"
                       rel="noreferrer"
                       className="px-5 py-3 rounded-xl btn-primary text-xs font-semibold flex items-center gap-2.5 justify-center"
@@ -749,14 +748,14 @@ export default function App() {
                     <div className="mt-4 rounded-xl overflow-hidden border border-white/5 bg-black/30 w-full">
                       {resume.download_url?.toLowerCase().endsWith(".pdf") ? (
                         <iframe 
-                          src={`http://localhost:8000${resume.download_url}#toolbar=0&navpanes=0`}
+                          src={`${API_BASE_URL}${resume.download_url}#toolbar=0&navpanes=0`}
                           title="Original PDF Resume"
                           className="w-full border-none"
                           style={{ height: "1200px" }}
                         />
                       ) : (
                         <iframe 
-                          src={`http://localhost:8000${resume.download_url}`}
+                          src={`${API_BASE_URL}${resume.download_url}`}
                           title="Original Resume File"
                           className="w-full border-none p-6 text-text-secondary"
                           style={{ height: "600px" }}
