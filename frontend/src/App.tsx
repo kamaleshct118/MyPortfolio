@@ -124,6 +124,86 @@ const TextScramble: React.FC<TextScrambleProps> = ({ text, speed = 30, className
 };
 
 
+// 🔮 Holographic 3D Parallax Tilt Card Component (Awwwards/FWA Standard)
+interface TiltCardProps {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+const TiltCard: React.FC<TiltCardProps> = ({ children, className, style }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [transformStyle, setTransformStyle] = useState("");
+  const [shineStyle, setShineStyle] = useState<React.CSSProperties>({});
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left; // x coordinate within the card
+    const y = e.clientY - rect.top;  // y coordinate within the card
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    // Calculate rotation angles (max 10 degrees tilt for premium look)
+    const rotateX = ((centerY - y) / centerY) * 10;
+    const rotateY = ((x - centerX) / centerX) * 10;
+
+    setTransformStyle(`perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`);
+
+    // Holographic cursor spotlight reflection (uses radial gradient overlay)
+    const shineX = (x / rect.width) * 100;
+    const shineY = (y / rect.height) * 100;
+    setShineStyle({
+      background: `radial-gradient(circle at ${shineX}% ${shineY}%, rgba(255, 255, 255, 0.12) 0%, transparent 60%)`,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTransformStyle("perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)");
+    setShineStyle({});
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={className}
+      style={{
+        ...style,
+        transform: transformStyle,
+        transition: "transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.3s",
+        transformStyle: "preserve-3d",
+        position: "relative",
+      }}
+    >
+      {/* 3D Holographic Shine Layer */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: "inherit",
+          pointerEvents: "none",
+          zIndex: 5,
+          mixBlendMode: "overlay",
+          opacity: shineStyle.background ? 1 : 0,
+          transition: "opacity 0.25s ease",
+          ...shineStyle,
+        }}
+      />
+      
+      {/* Dynamic Z-depth content container (forces child elements to pop out in 3D) */}
+      <div style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<"home" | "admin">("home");
   const [projects, setProjects] = useState<ProjectData[]>([]);
@@ -177,6 +257,23 @@ export default function App() {
 
       // 2. Continuous 3D coin-spin rotation matching scroll coordinate
       setScrollSpinAngle(currentScrollY * 0.95);
+
+      // 3. Dynamic Color Morphing on Scroll!
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight || 2000;
+      const scrollPercent = Math.min(currentScrollY / maxScroll, 1);
+      
+      // Morph primary identity brand colors through HSL space!
+      // Starts as Electric Royal Blue (hue 220) and Violet (hue 270)
+      // Gradually shifts to Tech Cyan (hue 185) and Hot Magenta (hue 315)
+      const brandHue = Math.floor(220 - scrollPercent * 35);
+      const accentHue = Math.floor(270 + scrollPercent * 45);
+      
+      document.documentElement.style.setProperty("--royal-blue", `hsl(${brandHue}, 80%, 53%)`);
+      document.documentElement.style.setProperty("--violet-accent", `hsl(${accentHue}, 75%, 58%)`);
+      
+      // Morph deep-navy background slightly to rich cosmic space violet-black
+      const bgHue = Math.floor(220 + scrollPercent * 50);
+      document.documentElement.style.setProperty("--bg-main", `hsl(${bgHue}, 60%, 4%)`);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -480,7 +577,7 @@ export default function App() {
     };
 
     return (
-      <div 
+      <TiltCard 
         key={key}
         className={`project-card group ${isMarquee ? "" : "reveal-in"}`}
         style={{ 
@@ -611,7 +708,7 @@ export default function App() {
             <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
-      </div>
+      </TiltCard>
     );
   };
 
