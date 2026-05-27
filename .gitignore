@@ -45,8 +45,7 @@ backend/metadata.db
 *.sqlite
 *.sqlite3
 
-# Static generated assets
-backend/static/images/
+
 
 # ─── Node.js / Frontend ──────────────────────────────────────
 node_modules/

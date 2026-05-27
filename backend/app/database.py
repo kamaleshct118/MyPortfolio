@@ -1,162 +1,190 @@
-import sqlite3
-import json
-import os
-from datetime import datetime
+from supabase import create_client, Client
 import app.config as config
+from datetime import datetime
+import json
 
-def get_db_connection():
-    conn = sqlite3.connect(config.DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+# Global client cache
+supabase_client = None
+
+def get_supabase_client() -> Client:
+    """Returns the globally cached Supabase client, instantiating it if necessary."""
+    global supabase_client
+    if supabase_client is None:
+        if not config.SUPABASE_URL or not config.SUPABASE_KEY:
+            raise ValueError(
+                "SUPABASE_URL and SUPABASE_KEY must be set in environment variables/config."
+            )
+        supabase_client = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
+    return supabase_client
 
 def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    # Create single resume table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS resume (
-        id INTEGER PRIMARY KEY DEFAULT 1,
-        summary TEXT NOT NULL,
-        file_path TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        CONSTRAINT one_row CHECK (id = 1)
-    )
-    """)
-    
-    # Create projects table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS projects (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        summary TEXT NOT NULL,
-        readme_path TEXT NOT NULL,
-        image_path TEXT NOT NULL,
-        tags TEXT, -- Comma-separated list of tags
-        links TEXT, -- JSON string of links
-        namespace TEXT NOT NULL UNIQUE,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-    )
-    """)
-    
-    conn.commit()
-    conn.close()
+    """Validates database connectivity to Supabase and checks if tables exist."""
+    try:
+        client = get_supabase_client()
+        # Test queries to verify tables exist
+        client.table("resume").select("id").limit(1).execute()
+        client.table("projects").select("id").limit(1).execute()
+        print("[*] Successfully connected to Supabase and verified tables exist.")
+    except Exception as e:
+        print(f"[!] Supabase connectivity check failed: {e}")
+        print("[!] Make sure to run the Supabase schema setup SQL script in your dashboard SQL Editor.")
 
 # --- Resume Database Operations ---
 
 def save_resume(summary: str, file_path: str):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    """Saves or updates the single resume record (id = 1) in the Supabase DB."""
+    client = get_supabase_client()
     now_str = datetime.utcnow().isoformat()
     
-    # Overwrite the single row with id = 1
-    cursor.execute("""
-    INSERT OR REPLACE INTO resume (id, summary, file_path, updated_at)
-    VALUES (1, ?, ?, ?)
-    """, (summary, file_path, now_str))
-    
-    conn.commit()
-    conn.close()
+    client.table("resume").upsert({
+        "id": 1,
+        "summary": summary,
+        "file_path": file_path,
+        "updated_at": now_str
+    }).execute()
 
 def get_resume():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM resume WHERE id = 1")
-    row = cursor.fetchone()
-    conn.close()
-    if row:
-        return dict(row)
+    """Retrieves the single resume record (id = 1) from the Supabase DB."""
+    client = get_supabase_client()
+    try:
+        response = client.table("resume").select("*").eq("id", 1).execute()
+        if response.data and len(response.data) > 0:
+            return response.data[0]
+    except Exception as e:
+        print(f"[!] Error fetching resume from Supabase: {e}")
     return None
 
 def delete_resume_metadata():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM resume WHERE id = 1")
-    conn.commit()
-    conn.close()
+    """Deletes the single resume record from the Supabase DB."""
+    client = get_supabase_client()
+    client.table("resume").delete().eq("id", 1).execute()
 
 # --- Project Database Operations ---
 
 def create_project(title: str, summary: str, readme_path: str, image_path: str, tags: list, links: dict, namespace: str):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    """Inserts a new project record into the Supabase projects table."""
+    client = get_supabase_client()
     now_str = datetime.utcnow().isoformat()
     
     tags_str = ",".join(tags) if tags else ""
-    links_str = json.dumps(links) if links else "{}"
+    links_data = links if links else {}
     
-    cursor.execute("""
-    INSERT INTO projects (title, summary, readme_path, image_path, tags, links, namespace, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (title, summary, readme_path, image_path, tags_str, links_str, namespace, now_str, now_str))
+    response = client.table("projects").insert({
+        "title": title,
+        "summary": summary,
+        "readme_path": readme_path,
+        "image_path": image_path,
+        "tags": tags_str,
+        "links": links_data,
+        "namespace": namespace,
+        "created_at": now_str,
+        "updated_at": now_str
+    }).execute()
     
-    project_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return project_id
+    if response.data and len(response.data) > 0:
+        return response.data[0]["id"]
+    raise RuntimeError("Failed to create project in Supabase")
 
 def update_project(project_id: int, title: str, summary: str, readme_path: str, image_path: str, tags: list, links: dict):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    """Updates an existing project record in the Supabase projects table."""
+    client = get_supabase_client()
     now_str = datetime.utcnow().isoformat()
     
     tags_str = ",".join(tags) if tags else ""
-    links_str = json.dumps(links) if links else "{}"
+    links_data = links if links else {}
     
-    cursor.execute("""
-    UPDATE projects
-    SET title = ?, summary = ?, readme_path = ?, image_path = ?, tags = ?, links = ?, updated_at = ?
-    WHERE id = ?
-    """, (title, summary, readme_path, image_path, tags_str, links_str, now_str, project_id))
-    
-    conn.commit()
-    conn.close()
+    client.table("projects").update({
+        "title": title,
+        "summary": summary,
+        "readme_path": readme_path,
+        "image_path": image_path,
+        "tags": tags_str,
+        "links": links_data,
+        "updated_at": now_str
+    }).eq("id", project_id).execute()
 
 def get_project(project_id: int):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM projects WHERE id = ?", (project_id,))
-    row = cursor.fetchone()
-    conn.close()
-    if row:
-        proj = dict(row)
+    """Retrieves a single project by ID and parses fields (tags, links)."""
+    client = get_supabase_client()
+    response = client.table("projects").select("*").eq("id", project_id).execute()
+    if response.data and len(response.data) > 0:
+        proj = response.data[0]
         proj["tags"] = [t.strip() for t in proj["tags"].split(",") if t.strip()] if proj["tags"] else []
-        proj["links"] = json.loads(proj["links"]) if proj["links"] else {}
+        if isinstance(proj["links"], str):
+            proj["links"] = json.loads(proj["links"])
         return proj
     return None
 
 def get_project_by_namespace(namespace: str):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM projects WHERE namespace = ?", (namespace,))
-    row = cursor.fetchone()
-    conn.close()
-    if row:
-        proj = dict(row)
+    """Retrieves a single project by namespace and parses fields (tags, links)."""
+    client = get_supabase_client()
+    response = client.table("projects").select("*").eq("namespace", namespace).execute()
+    if response.data and len(response.data) > 0:
+        proj = response.data[0]
         proj["tags"] = [t.strip() for t in proj["tags"].split(",") if t.strip()] if proj["tags"] else []
-        proj["links"] = json.loads(proj["links"]) if proj["links"] else {}
+        if isinstance(proj["links"], str):
+            proj["links"] = json.loads(proj["links"])
         return proj
     return None
 
 def list_projects():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM projects ORDER BY created_at DESC")
-    rows = cursor.fetchall()
-    conn.close()
-    
-    projects_list = []
-    for row in rows:
-        proj = dict(row)
-        proj["tags"] = [t.strip() for t in proj["tags"].split(",") if t.strip()] if proj["tags"] else []
-        proj["links"] = json.loads(proj["links"]) if proj["links"] else {}
-        projects_list.append(proj)
-    return projects_list
+    """Lists all projects ordered by creation date, parsing tags and links for each."""
+    client = get_supabase_client()
+    try:
+        response = client.table("projects").select("*").order("created_at", desc=True).execute()
+        projects_list = []
+        for row in response.data:
+            proj = dict(row)
+            proj["tags"] = [t.strip() for t in proj["tags"].split(",") if t.strip()] if proj["tags"] else []
+            if isinstance(proj["links"], str):
+                proj["links"] = json.loads(proj["links"])
+            projects_list.append(proj)
+        return projects_list
+    except Exception as e:
+        print(f"[!] Error listing projects from Supabase: {e}")
+        return []
 
 def delete_project_metadata(project_id: int):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM projects WHERE id = ?", (project_id,))
-    conn.commit()
-    conn.close()
+    """Deletes a project's metadata from the Supabase database."""
+    client = get_supabase_client()
+    client.table("projects").delete().eq("id", project_id).execute()
+
+def upload_file_to_storage(bucket: str, path: str, file_data: bytes, content_type: str = None) -> str:
+    """
+    Uploads a file to a Supabase Storage bucket and returns its public URL.
+    Automatically creates the bucket as public if it does not exist.
+    """
+    client = get_supabase_client()
+    try:
+        # Check and create public bucket if missing
+        buckets = client.storage.list_buckets()
+        bucket_names = [b.name for b in buckets]
+        if bucket not in bucket_names:
+            client.storage.create_bucket(bucket, options={"public": True})
+            print(f"[*] Created new public bucket: '{bucket}'")
+    except Exception as e:
+        print(f"[!] Error checking/creating bucket: {e}")
+
+    try:
+        # Clean path and upload file (using upsert=true)
+        clean_path = path.lstrip("/")
+        options = {"content-type": content_type} if content_type else {}
+        
+        client.storage.from_(bucket).upload(
+            path=clean_path,
+            file=file_data,
+            file_options={"upsert": "true", **options}
+        )
+        
+        # Retrieve public URL
+        url = client.storage.from_(bucket).get_public_url(clean_path)
+        print(f"[+] File uploaded successfully. Public URL: {url}")
+        return url
+    except Exception as e:
+        print(f"[!] Error uploading file to Supabase: {e}")
+        # Try returning public URL anyway as fallback
+        try:
+            return client.storage.from_(bucket).get_public_url(path.lstrip("/"))
+        except Exception:
+            raise e
+

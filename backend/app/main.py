@@ -97,9 +97,13 @@ def get_resume():
     if not resume_data:
         return {"exists": False}
     
-    # Generate direct download URL
-    filename = os.path.basename(resume_data["file_path"])
-    download_url = f"/uploads/{filename}"
+    # Generate direct download URL (handle cloud URL or local fallback)
+    file_path = resume_data["file_path"]
+    if file_path.startswith(("http://", "https://")):
+        download_url = file_path
+    else:
+        filename = os.path.basename(file_path)
+        download_url = f"/uploads/{filename}"
     
     return {
         "exists": True,
@@ -121,17 +125,27 @@ async def save_resume(
         raise HTTPException(status_code=400, detail="Unsupported file format. Upload PDF, TXT or MD.")
 
     def sse_generator():
-        temp_path = None
+        save_path = None
         try:
             # 1. State: Uploading File
             yield "data: Uploading File\n\n"
             time.sleep(0.4)
             
-            # Create a local copy
+            # Create a local copy temporarily for parsing/chunking
             os.makedirs(config.UPLOAD_DIR, exist_ok=True)
             save_path = os.path.join(config.UPLOAD_DIR, file.filename)
             with open(save_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
+            
+            # Upload to Supabase Storage permanently
+            file.file.seek(0)
+            file_bytes = file.file.read()
+            public_resume_url = database.upload_file_to_storage(
+                "portfolio", 
+                f"uploads/{file.filename}", 
+                file_bytes, 
+                file.content_type
+            )
             
             # Read file text for summary generation
             file_text = ""
@@ -164,17 +178,30 @@ async def save_resume(
             
             # Evict old cached DB
             retriever.unload_db("resume")
-            # Create new FAISS index
+            # Create new index in Supabase
             indexer.create_index(chunks, "resume")
 
-            # Write metadata to SQL
-            database.save_resume(ai_summary, save_path)
+            # Write metadata to SQL (Save the public cloud URL!)
+            database.save_resume(ai_summary, public_resume_url)
+
+            # Clean up local temporary file
+            try:
+                if save_path and os.path.exists(save_path):
+                    os.remove(save_path)
+            except Exception:
+                pass
 
             # 6. State: RAG Processing Complete
             yield "data: RAG Processing Complete\n\n"
             
         except Exception as e:
             yield f"data: Error: {str(e)}\n\n"
+            # Attempt to clean up temp file on error
+            try:
+                if save_path and os.path.exists(save_path):
+                    os.remove(save_path)
+            except Exception:
+                pass
 
     return StreamingResponse(sse_generator(), media_type="text/event-stream")
 
@@ -186,19 +213,19 @@ def delete_resume(is_admin: bool = Depends(auth.require_admin)):
         raise HTTPException(status_code=404, detail="No resume found to delete.")
         
     try:
-        # 1. Delete original file
+        # 1. Delete original file locally if present
         if os.path.exists(resume_data["file_path"]):
             os.remove(resume_data["file_path"])
             
-        # 2. Delete FAISS directory
+        # 2. Delete FAISS directory locally if present
         vector_path = os.path.join(config.VECTOR_DIR, "resume")
         if os.path.exists(vector_path):
             shutil.rmtree(vector_path)
             
-        # 3. Evict from retriever cache
+        # 3. Evict from retriever cache and delete from Supabase Vector Store
         retriever.unload_db("resume")
         
-        # 4. Delete SQLite record
+        # 4. Delete Supabase record
         database.delete_resume_metadata()
         
         return {"message": "Resume and its vectorized knowledge successfully deleted."}
@@ -212,12 +239,16 @@ def get_projects():
     """Retrieves all projects list with display summaries and detail links."""
     projects = database.list_projects()
     for proj in projects:
-        # Prepend base urls for static assets
+        # Resolve image URL
         if proj["image_path"] and not proj["image_path"].startswith(("http://", "https://")):
             proj["image_path"] = f"/static/images/{os.path.basename(proj['image_path'])}"
         
-        filename = os.path.basename(proj["readme_path"])
-        proj["readme_url"] = f"/uploads/{filename}"
+        # Resolve readme URL
+        if proj["readme_path"] and proj["readme_path"].startswith(("http://", "https://")):
+            proj["readme_url"] = proj["readme_path"]
+        else:
+            filename = os.path.basename(proj["readme_path"])
+            proj["readme_url"] = f"/uploads/{filename}"
         
     return {"projects": projects}
 
@@ -231,8 +262,11 @@ def get_project(project_id: int):
     if proj["image_path"] and not proj["image_path"].startswith(("http://", "https://")):
         proj["image_path"] = f"/static/images/{os.path.basename(proj['image_path'])}"
         
-    filename = os.path.basename(proj["readme_path"])
-    proj["readme_url"] = f"/uploads/{filename}"
+    if proj["readme_path"] and proj["readme_path"].startswith(("http://", "https://")):
+        proj["readme_url"] = proj["readme_path"]
+    else:
+        filename = os.path.basename(proj["readme_path"])
+        proj["readme_url"] = f"/uploads/{filename}"
     
     return proj
 
@@ -279,43 +313,61 @@ async def save_project(
             # Handle Image path (either uploaded file or external url)
             final_image_path = ""
             if image_file:
-                # Save uploaded image locally to static/images/
+                # Upload image directly to Supabase storage
                 image_ext = os.path.splitext(image_file.filename)[1].lower()
                 safe_image_name = f"{namespace}{image_ext}"
-                local_img_path = os.path.join(config.STATIC_DIR, "images", safe_image_name)
-                with open(local_img_path, "wb") as buffer:
-                    shutil.copyfileobj(image_file.file, buffer)
-                final_image_path = local_img_path
+                
+                image_file.file.seek(0)
+                img_bytes = image_file.file.read()
+                public_img_url = database.upload_file_to_storage(
+                    "portfolio", 
+                    f"images/{safe_image_name}", 
+                    img_bytes, 
+                    image_file.content_type
+                )
+                final_image_path = public_img_url
             elif image_url:
                 final_image_path = image_url
             elif is_edit:
                 # Retain old image path if editing
                 final_image_path = existing_proj["image_path"]
 
-            # Check if README has changed when editing (strip \r to prevent Windows CRLF differences)
+            # Check if README has changed when editing
             readme_changed = True
-            if is_edit and existing_proj and os.path.exists(existing_proj["readme_path"]):
+            if is_edit and existing_proj:
                 try:
-                    with open(existing_proj["readme_path"], "r", encoding="utf-8") as f:
-                        old_content = f.read()
+                    old_content = ""
+                    readme_path = existing_proj["readme_path"]
+                    if readme_path.startswith(("http://", "https://")):
+                        import urllib.request
+                        with urllib.request.urlopen(readme_path) as response:
+                            old_content = response.read().decode("utf-8")
+                    elif os.path.exists(readme_path):
+                        with open(readme_path, "r", encoding="utf-8") as f:
+                            old_content = f.read()
+                    
                     clean_new = readme_text.replace("\r", "").strip() if readme_text else ""
                     clean_old = old_content.replace("\r", "").strip() if old_content else ""
                     if clean_new == clean_old or not readme_text:
                         readme_changed = False
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"[!] Warning reading old README: {e}")
 
             if not readme_text and not is_edit:
                 raise ValueError("README markdown content is required when creating a new project.")
 
             # Process README text if provided and changed
             if readme_changed and readme_text:
-                # Save README content to a markdown file locally (so database has the path and we can fetch/download it)
+                # Save README content to Supabase Storage permanently
                 readme_filename = f"{namespace}_README.md"
-                save_readme_path = os.path.join(config.UPLOAD_DIR, readme_filename)
-                with open(save_readme_path, "w", encoding="utf-8") as f:
-                    f.write(readme_text)
-
+                readme_bytes = readme_text.encode("utf-8")
+                public_readme_url = database.upload_file_to_storage(
+                    "portfolio", 
+                    f"readmes/{readme_filename}", 
+                    readme_bytes, 
+                    "text/markdown"
+                )
+                save_readme_path = public_readme_url
                 readme_content = readme_text
 
                 # 2. State: Generating Summary
@@ -338,7 +390,7 @@ async def save_project(
                 
                 # Evict old cached DB index
                 retriever.unload_db(namespace)
-                # Save FAISS index
+                # Save vector index to Supabase Vector Store
                 indexer.create_index(chunks, namespace)
                 
             else:
@@ -381,6 +433,7 @@ async def save_project(
             yield f"data: Error: {str(e)}\n\n"
 
     return StreamingResponse(sse_generator(), media_type="text/event-stream")
+
 
 @app.delete("/api/projects/{project_id}", tags=["Projects"])
 def delete_project(project_id: int, is_admin: bool = Depends(auth.require_admin)):

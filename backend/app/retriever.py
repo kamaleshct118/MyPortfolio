@@ -1,7 +1,7 @@
 import os
 import re
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
+from langchain_community.vectorstores import SupabaseVectorStore
 from langchain_openai import ChatOpenAI
 import app.config as config
 import app.database as database
@@ -73,35 +73,39 @@ def get_llm():
     return _llm_cache
 
 def load_db(namespace: str):
-    """Loads a FAISS index into memory and caches it."""
+    """Instantiates and returns the globally cached SupabaseVectorStore wrapper."""
     global _loaded_dbs
     
-    if namespace in _loaded_dbs:
-        return _loaded_dbs[namespace]
+    # We cache a single connection under "supabase" key for all namespaces
+    if "supabase" in _loaded_dbs:
+        return _loaded_dbs["supabase"]
         
-    db_path = os.path.join(config.VECTOR_DIR, namespace)
-    if not os.path.exists(db_path):
-        return None
-        
-    print(f"[*] Loading namespace index '{namespace}' into memory...")
+    print("[*] Instantiating Supabase Vector Store connection...")
     try:
-        db = FAISS.load_local(
-            db_path, 
-            get_embeddings(), 
-            allow_dangerous_deserialization=True
+        from app.database import get_supabase_client
+        client = get_supabase_client()
+        db = SupabaseVectorStore(
+            client=client,
+            embedding=get_embeddings(),
+            table_name="documents",
+            query_name="match_documents"
         )
-        _loaded_dbs[namespace] = db
+        _loaded_dbs["supabase"] = db
         return db
     except Exception as e:
-        print(f"[!] Error loading vector store '{namespace}': {e}")
+        print(f"[!] Error instantiating Supabase Vector Store: {e}")
         return None
 
 def unload_db(namespace: str):
-    """Evicts a FAISS index from the memory cache (e.g. on deletion)."""
+    """Evicts a namespace and deletes all document vectors belonging to it from Supabase."""
     global _loaded_dbs
-    if namespace in _loaded_dbs:
-        _loaded_dbs.pop(namespace)
-        print(f"[*] Evicted namespace index '{namespace}' from memory cache.")
+    
+    # Purge from Supabase vector index
+    try:
+        import app.indexer as indexer
+        indexer.delete_index(namespace)
+    except Exception as e:
+        print(f"[!] Error during unload_db index deletion: {e}")
 
 def contextualize_query(query: str, history: list = None) -> str:
     """
@@ -277,7 +281,7 @@ def ask_question(question: str, namespace: str, history: list = None):
         # Pull up to 3 chunks from resume
         resume_db = load_db("resume")
         if resume_db:
-            resume_docs = resume_db.similarity_search(search_query, k=3)
+            resume_docs = resume_db.similarity_search(search_query, k=3, filter={"namespace": "resume"})
             context += "\n---\n### General Developer Info & Experience:\n" + "\n---\n".join([d.page_content for d in resume_docs])
             docs.extend(resume_docs)
             
@@ -287,7 +291,7 @@ def ask_question(question: str, namespace: str, history: list = None):
         for ns in namespaces:
             ns_db = load_db(ns)
             if ns_db:
-                results = ns_db.similarity_search(search_query, k=3)
+                results = ns_db.similarity_search(search_query, k=3, filter={"namespace": ns})
                 for d in results:
                     unique_docs[d.page_content] = d
         docs = list(unique_docs.values())[:6]
@@ -304,7 +308,7 @@ def ask_question(question: str, namespace: str, history: list = None):
         is_summary_query = any(word in search_query.lower() for word in ["abstract", "summary", "summarise", "intro", "overview"])
         
         for q in search_queries:
-            results = db.similarity_search(q, k=5)
+            results = db.similarity_search(q, k=5, filter={"namespace": namespace})
             for d in results:
                 unique_docs[d.page_content] = d
                 
@@ -312,7 +316,7 @@ def ask_question(question: str, namespace: str, history: list = None):
                 page_num = d.metadata.get('page', 999)
                 if is_summary_query and page_num < 5:
                     # Retrieve surrounding text pages if we are near the document head
-                    adj_results = db.similarity_search(f"Page {page_num+1} content", k=2)
+                    adj_results = db.similarity_search(f"Page {page_num+1} content", k=2, filter={"namespace": namespace})
                     for adj in adj_results:
                         unique_docs[adj.page_content] = adj
 

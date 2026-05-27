@@ -18,6 +18,10 @@ EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-ai/nomic-embed-text-v1.5").strip()
 # Admin Settings
 ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "admin123").strip()
 
+# Supabase Credentials
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "").strip()
+
 # Storage Directories
 VECTOR_DIR = os.path.join(BASE_DIR, "vectorstore")
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")

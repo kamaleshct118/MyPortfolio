@@ -12,3 +12,4 @@ einops
 python-multipart
 pydantic
 python-dotenv
+supabase
