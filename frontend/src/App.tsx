@@ -156,6 +156,35 @@ export default function App() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [showOriginalResume, setShowOriginalResume] = useState(false);
 
+  // Premium navigation and coin-spin scroll states
+  const [showHeader, setShowHeader] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [scrollSpinAngle, setScrollSpinAngle] = useState(0);
+  const [isAvatarHovered, setIsAvatarHovered] = useState(false);
+  const [isLogoHovered, setIsLogoHovered] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // 1. Hide navbar on scroll down, reveal on scroll up
+      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        setShowHeader(false);
+      } else {
+        setShowHeader(true);
+      }
+      setLastScrollY(currentScrollY);
+
+      // 2. Continuous 3D coin-spin rotation matching scroll coordinate
+      setScrollSpinAngle(currentScrollY * 0.95);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [lastScrollY]);
+
   // Clear any stale admin session on every mount (refresh / new tab)
   useEffect(() => {
     sessionStorage.removeItem("admin_token");
@@ -617,10 +646,18 @@ export default function App() {
       />
 
       {/* --- PREMIUM NAVIGATION HEADER --- */}
-      <header className="w-full py-5 sticky top-0 z-40 backdrop-blur-md border-b border-white/5 bg-black/20">
+      <header 
+        className="w-full py-5 sticky top-0 z-40 backdrop-blur-md border-b border-white/5 bg-black/20"
+        style={{
+          transform: showHeader ? "translateY(0)" : "translateY(-100%)",
+          transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s",
+        }}
+      >
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentPage("home")}>
             <div
+                onMouseEnter={() => setIsLogoHovered(true)}
+                onMouseLeave={() => setIsLogoHovered(false)}
                 style={{
                   width: "36px",
                   height: "36px",
@@ -628,7 +665,12 @@ export default function App() {
                   overflow: "hidden",
                   border: "1px solid rgba(124,58,237,0.15)",
                   flexShrink: 0,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                  transform: `rotateY(${scrollSpinAngle + (isLogoHovered ? 360 : 0)}deg)`,
+                  transition: isLogoHovered 
+                    ? "transform 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275)" 
+                    : "transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                  transformStyle: "preserve-3d"
                 }}
               >
                 <img
@@ -777,7 +819,17 @@ export default function App() {
                 {/* Glowing effect background */}
                 <div className="hero-avatar-glow" />
                 {/* Inner circle */}
-                <div className="hero-avatar-circle">
+                <div 
+                  className="hero-avatar-circle"
+                  onMouseEnter={() => setIsAvatarHovered(true)}
+                  onMouseLeave={() => setIsAvatarHovered(false)}
+                  style={{
+                    transform: `rotateY(${scrollSpinAngle + (isAvatarHovered ? 360 : 0)}deg)`,
+                    transition: isAvatarHovered 
+                      ? "transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)" 
+                      : "transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                  }}
+                >
                   <img
                     src="/kamal_icon.png"
                     alt="Kamalesh V"

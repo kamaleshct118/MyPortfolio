@@ -54,8 +54,8 @@ export default function ProcessingPopup({ state, isOpen, onClose }: ProcessingPo
     return "pending";
   };
 
-  const isFailed = state === "Error";
-  const isFinished = state === "RAG Processing Complete" || state === "Error";
+  const isFailed = state === "Error" || (typeof state === "string" && state.startsWith("Error"));
+  const isFinished = state === "RAG Processing Complete" || isFailed;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center font-sans bg-black/70 backdrop-blur-md" style={{ zIndex: 100 }}>
@@ -163,7 +163,9 @@ export default function ProcessingPopup({ state, isOpen, onClose }: ProcessingPo
         {/* Error Detail Display */}
         {isFailed && (
           <div className="mb-6 p-4 rounded-xl bg-red-500/5 border border-red-500/25 text-red-300 text-xs leading-relaxed max-h-24 overflow-y-auto font-mono">
-            {state === "Error" ? "Database constraint error or failed connection to Groq API." : "Unknown pipeline error occurred."}
+            {typeof state === "string" && state.startsWith("Error:") 
+              ? state.replace("Error:", "").trim() 
+              : "Database constraint error or failed connection to Groq API."}
           </div>
         )}
 
