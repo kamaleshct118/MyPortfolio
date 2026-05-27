@@ -90,7 +90,6 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [pendingQuery, setPendingQuery] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // ── Direct send (bypasses the form / controlled input) ──────────────────
@@ -149,22 +148,15 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
   };
 
   // ── Imperative API for parent (App.tsx) ─────────────────────────────────
-  // Sets pendingQuery + opens panel; the useEffect below fires the send once mounted
+  // Opens the panel and submits the message directly with a tiny frame layout buffer
   useImperativeHandle(ref, () => ({
     openAndSubmit: (query: string) => {
-      setPendingQuery(query);
       setIsOpen(true);
+      setTimeout(() => {
+        sendDirectMessage(query);
+      }, 80); // Small 80ms buffer ensures the 3D entry animation begins unfolding before typing is active!
     },
   }));
-
-  // ── Fire pending query as soon as panel is open and not already typing ───
-  useEffect(() => {
-    if (!pendingQuery || !isOpen || isTyping) return;
-    const queryToSend = pendingQuery;
-    setPendingQuery(null); // clear immediately so it only fires once
-    sendDirectMessage(queryToSend);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingQuery, isOpen]);
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
@@ -323,7 +315,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
 
       {/* Chat Panel - anchored independently */}
       <div
-        className="glass-panel flex flex-col overflow-hidden"
+        className={`glass-panel flex flex-col overflow-hidden chatbot-panel-responsive ${isOpen ? "panel-open" : "panel-closed"}`}
         style={{
           position: "fixed",
           top: "50%",

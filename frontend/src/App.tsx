@@ -238,7 +238,7 @@ export default function App() {
 
   // Premium navigation and coin-spin scroll states
   const [showHeader, setShowHeader] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollRef = useRef(0);
   const [scrollSpinAngle, setScrollSpinAngle] = useState(0);
   const [isAvatarHovered, setIsAvatarHovered] = useState(false);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
@@ -246,14 +246,15 @@ export default function App() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+      const prevScrollY = lastScrollRef.current;
 
       // 1. Hide navbar on scroll down, reveal on scroll up
-      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+      if (currentScrollY > prevScrollY && currentScrollY > 80) {
         setShowHeader(false);
       } else {
         setShowHeader(true);
       }
-      setLastScrollY(currentScrollY);
+      lastScrollRef.current = currentScrollY;
 
       // 2. Continuous 3D coin-spin rotation matching scroll coordinate
       setScrollSpinAngle(currentScrollY * 0.95);
@@ -286,7 +287,7 @@ export default function App() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [lastScrollY]);
+  }, []);
 
   // Clear any stale admin session on every mount (refresh / new tab)
   useEffect(() => {
