@@ -570,7 +570,7 @@ export default function App() {
 
   // UI micro-interaction: directly opens chatbot and fires the query
   const handleAskAIAboutProject = (projectTitle: string) => {
-    chatbotRef.current?.openAndSubmit(`explain about the "${projectTitle}" project`);
+    chatbotRef.current?.openAndSubmit(`explain about this '${projectTitle}' project`);
   };
 
   const renderProjectCard = (proj: ProjectData, key: string, isMarquee = false) => {

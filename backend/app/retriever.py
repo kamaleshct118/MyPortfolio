@@ -3,6 +3,7 @@ import re
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import SupabaseVectorStore
 from langchain_openai import ChatOpenAI
+from langchain_core.documents import Document
 import app.config as config
 import app.database as database
 
@@ -95,6 +96,41 @@ def load_db(namespace: str):
     except Exception as e:
         print(f"[!] Error instantiating Supabase Vector Store: {e}")
         return None
+
+def direct_similarity_search(query: str, namespace: str, k: int = 5) -> list:
+    """
+    Directly queries the Supabase 'match_documents' RPC to avoid the buggy 
+    LangChain community vector store client implementation.
+    """
+    try:
+        from app.database import get_supabase_client
+        # Get query vector embedding
+        embeddings = get_embeddings()
+        query_vector = embeddings.embed_query(query)
+        
+        # Query Supabase match_documents RPC directly
+        client = get_supabase_client()
+        response = client.rpc(
+            "match_documents",
+            {
+                "query_embedding": query_vector,
+                "match_count": k,
+                "filter": {"namespace": namespace}
+            }
+        ).execute()
+        
+        # Convert response records into LangChain Document objects
+        docs = []
+        for record in response.data:
+            doc = Document(
+                page_content=record.get("content", ""),
+                metadata=record.get("metadata", {})
+            )
+            docs.append(doc)
+        return docs
+    except Exception as e:
+        print(f"[!] Direct Supabase similarity search failed: {e}")
+        return []
 
 def unload_db(namespace: str):
     """Evicts a namespace and deletes all document vectors belonging to it from Supabase."""
@@ -279,36 +315,28 @@ def ask_question(question: str, namespace: str, history: list = None):
         context = "### My Projects Overview:\n" + "\n---\n".join(proj_details)
         
         # Pull up to 3 chunks from resume
-        resume_db = load_db("resume")
-        if resume_db:
-            resume_docs = resume_db.similarity_search(search_query, k=3, filter={"namespace": "resume"})
-            context += "\n---\n### General Developer Info & Experience:\n" + "\n---\n".join([d.page_content for d in resume_docs])
-            docs.extend(resume_docs)
+        resume_docs = direct_similarity_search(search_query, "resume", k=3)
+        context += "\n---\n### General Developer Info & Experience:\n" + "\n---\n".join([d.page_content for d in resume_docs])
+        docs.extend(resume_docs)
             
     elif namespace.startswith("multi_project:"):
         namespaces = namespace.replace("multi_project:", "").split(",")
         unique_docs = {}
         for ns in namespaces:
-            ns_db = load_db(ns)
-            if ns_db:
-                results = ns_db.similarity_search(search_query, k=3, filter={"namespace": ns})
-                for d in results:
-                    unique_docs[d.page_content] = d
+            results = direct_similarity_search(search_query, ns, k=3)
+            for d in results:
+                unique_docs[d.page_content] = d
         docs = list(unique_docs.values())[:6]
         context = "\n---\n".join([f"[CONTENT]: {d.page_content}" for d in docs])
         
     else:
         # Standard flow
-        db = load_db(namespace)
-        if db is None:
-            return f"Error: The knowledge base for '{namespace}' is empty or not indexed yet.", []
-            
-        # 2. Similarity search against FAISS index
+        # 2. Similarity search against Supabase vector index
         unique_docs = {}
         is_summary_query = any(word in search_query.lower() for word in ["abstract", "summary", "summarise", "intro", "overview"])
         
         for q in search_queries:
-            results = db.similarity_search(q, k=5, filter={"namespace": namespace})
+            results = direct_similarity_search(q, namespace, k=5)
             for d in results:
                 unique_docs[d.page_content] = d
                 
@@ -316,7 +344,7 @@ def ask_question(question: str, namespace: str, history: list = None):
                 page_num = d.metadata.get('page', 999)
                 if is_summary_query and page_num < 5:
                     # Retrieve surrounding text pages if we are near the document head
-                    adj_results = db.similarity_search(f"Page {page_num+1} content", k=2, filter={"namespace": namespace})
+                    adj_results = direct_similarity_search(f"Page {page_num+1} content", namespace, k=2)
                     for adj in adj_results:
                         unique_docs[adj.page_content] = adj
 

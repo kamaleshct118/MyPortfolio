@@ -13,6 +13,13 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Set up Hugging Face global cache directory inside the container
+ENV HF_HOME=/code/hf_cache
+RUN mkdir -p /code/hf_cache && chmod -R 777 /code/hf_cache
+
+# Pre-download the embedding model during the build phase (baked into the Docker image)
+RUN python -c "from langchain_huggingface import HuggingFaceEmbeddings; HuggingFaceEmbeddings(model_name='nomic-ai/nomic-embed-text-v1.5', model_kwargs={'trust_remote_code': True})"
+
 # Copy app source code
 COPY . .
 
