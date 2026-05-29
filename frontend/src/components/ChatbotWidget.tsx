@@ -91,10 +91,29 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Clean up abort controller on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // ── Direct send (bypasses the form / controlled input) ──────────────────
   const sendDirectMessage = async (text: string) => {
-    if (!text.trim() || isTyping) return;
+    if (!text.trim()) return;
+
+    // Cancel any active previous request (avoids lockout on multiple clicks)
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    setIsTyping(true);
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -104,7 +123,6 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setIsTyping(true);
 
     try {
       const historyData = messages
@@ -115,6 +133,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text, history: historyData }),
+        signal: controller.signal,
       });
 
       if (!response.ok) throw new Error("Failed to communicate with chatbot server.");
@@ -132,7 +151,10 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
           sources: data.sources,
         },
       ]);
-    } catch {
+    } catch (err: any) {
+      // Gracefully ignore requests that were cancelled intentionally
+      if (err.name === "AbortError") return;
+
       setMessages((prev) => [
         ...prev,
         {
@@ -143,7 +165,10 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
         },
       ]);
     } finally {
-      setIsTyping(false);
+      if (abortControllerRef.current === controller) {
+        setIsTyping(false);
+        abortControllerRef.current = null;
+      }
     }
   };
 
@@ -165,7 +190,16 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || isTyping) return;
+    if (!inputValue.trim()) return;
+
+    // Cancel any active previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    setIsTyping(true);
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -176,7 +210,6 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
-    setIsTyping(true);
 
     try {
       const historyData = messages
@@ -191,6 +224,7 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage.text, history: historyData }),
+        signal: controller.signal,
       });
 
       if (!response.ok) throw new Error("Failed to communicate with chatbot server.");
@@ -207,7 +241,9 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
       };
 
       setMessages((prev) => [...prev, botMessage]);
-    } catch {
+    } catch (err: any) {
+      if (err.name === "AbortError") return;
+
       setMessages((prev) => [
         ...prev,
         {
@@ -218,7 +254,10 @@ const ChatbotWidget = forwardRef<ChatbotWidgetHandle>(function ChatbotWidget(_pr
         },
       ]);
     } finally {
-      setIsTyping(false);
+      if (abortControllerRef.current === controller) {
+        setIsTyping(false);
+        abortControllerRef.current = null;
+      }
     }
   };
 
