@@ -49,14 +49,27 @@ def add_to_cache(query: str, namespace: str, answer: str, sources: list):
 
 
 def get_embeddings():
-    """Returns the globally cached HuggingFace embeddings model."""
+    """Returns the globally cached HuggingFace embeddings model with offline-first loading."""
     global _embeddings_cache
     if _embeddings_cache is None:
         print(f"[*] Loading Embedding Model ({config.EMBED_MODEL})...")
-        _embeddings_cache = HuggingFaceEmbeddings(
-            model_name=config.EMBED_MODEL,
-            model_kwargs={'trust_remote_code': True}
-        )
+        try:
+            # 1. Attempt strict offline loading from the baked-in container cache (critical for Hugging Face Spaces)
+            _embeddings_cache = HuggingFaceEmbeddings(
+                model_name=config.EMBED_MODEL,
+                model_kwargs={
+                    'trust_remote_code': True,
+                    'local_files_only': True
+                }
+            )
+            print("[+] Successfully loaded embedding model from offline cache.")
+        except Exception as offline_err:
+            print(f"[*] Offline loading skipped or failed: {offline_err}. Attempting online download...")
+            # 2. Fall back to standard online loading (for initial local development)
+            _embeddings_cache = HuggingFaceEmbeddings(
+                model_name=config.EMBED_MODEL,
+                model_kwargs={'trust_remote_code': True}
+            )
     return _embeddings_cache
 
 def get_llm():
