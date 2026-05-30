@@ -135,11 +135,25 @@ const TiltCard: React.FC<TiltCardProps> = ({ children, className, style }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [transformStyle, setTransformStyle] = useState("");
   const [shineStyle, setShineStyle] = useState<React.CSSProperties>({});
+  const [isInteractiveHovered, setIsInteractiveHovered] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = cardRef.current;
     if (!card) return;
 
+    // Detect if mouse is over an interactive child (a button, link, etc.) to prevent projection flicker
+    const target = e.target as HTMLElement;
+    const isInteractive = target.closest("button") || target.closest("a");
+
+    if (isInteractive) {
+      setIsInteractiveHovered(true);
+      // Smoothly flatten card tilt and maintain hovered scale to keep buttons completely static and clickable
+      setTransformStyle("perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1.02, 1.02, 1.02)");
+      setShineStyle({});
+      return;
+    }
+
+    setIsInteractiveHovered(false);
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left; // x coordinate within the card
     const y = e.clientY - rect.top;  // y coordinate within the card
@@ -162,6 +176,7 @@ const TiltCard: React.FC<TiltCardProps> = ({ children, className, style }) => {
   };
 
   const handleMouseLeave = () => {
+    setIsInteractiveHovered(false);
     setTransformStyle("perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)");
     setShineStyle({});
   };
@@ -196,7 +211,11 @@ const TiltCard: React.FC<TiltCardProps> = ({ children, className, style }) => {
       />
       
       {/* Dynamic Z-depth content container (forces child elements to pop out in 3D) */}
-      <div style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}>
+      <div style={{ 
+        transform: isInteractiveHovered ? "translateZ(0px)" : "translateZ(30px)", 
+        transformStyle: "preserve-3d",
+        transition: "transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+      }}>
         {children}
       </div>
     </div>
